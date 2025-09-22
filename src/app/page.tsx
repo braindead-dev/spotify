@@ -2,6 +2,8 @@
 
 import { useEffect, useState } from "react";
 import Image from "next/image";
+import { Button } from "@/components/ui/button";
+import { FaSpotify } from "react-icons/fa";
 
 type NowPlaying = {
   authenticated: boolean;
@@ -46,16 +48,20 @@ export default function Home() {
     <main className="min-h-screen flex items-center justify-center p-6">
       <div className="flex flex-col items-center gap-4">
         {!connected ? (
-          <a
-            href="/api/spotify/login"
-            className="px-4 py-2 border border-gray-300 rounded-md"
+          <Button
+            onClick={() => {
+              window.location.href = "/api/spotify/login";
+            }}
+            variant="fancy"
+            className="px-2 py-1"
           >
             Connect to Spotify
-          </a>
+            <FaSpotify className="text-green-500 -ml-0.5" />
+          </Button>
         ) : (
           <div className="text-center">
             {loading && !data ? (
-              <p>Loading...</p>
+              <p>...</p>
             ) : data && data.isPlaying && data.track ? (
               <div>
                 {data.track.albumImageUrl ? (
