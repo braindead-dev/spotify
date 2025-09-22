@@ -9,7 +9,7 @@ import { ControlsSettingsDialog } from "@/components/spotify/ControlsSettingsDia
 
 export default function Home() {
   const { data, loading, connected } = useNowPlaying(5000);
-  const [gradientEnabled, setGradientEnabled] = useState<boolean>(false);
+  const [gradientEnabled, setGradientEnabled] = useState<boolean>(true);
   const [gradientColors, setGradientColors] = useState<string[] | null>(null);
   const [controlsEnabledForDialog, setControlsEnabledForDialog] =
     useState<boolean>(false);

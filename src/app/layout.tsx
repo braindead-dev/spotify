@@ -2,8 +2,8 @@ import type { Metadata } from "next";
 import "./globals.css";
 
 export const metadata: Metadata = {
-  title: "Spotify Now Playing",
-  description: "Connect Spotify and display the currently playing song.",
+  title: "visuals",
+  description: "a lightweight visualizer for Spotify",
 };
 
 export default function RootLayout({
