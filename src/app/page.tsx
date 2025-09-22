@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import Image from "next/image";
 
 type NowPlaying = {
   authenticated: boolean;
@@ -40,31 +41,31 @@ export default function Home() {
   const connected = !!data?.authenticated;
 
   return (
-    <main style={{ display: "flex", minHeight: "100vh", alignItems: "center", justifyContent: "center", padding: 24 }}>
-      <div style={{ display: "flex", flexDirection: "column", gap: 16, alignItems: "center" }}>
+    <main className="min-h-screen flex items-center justify-center p-6">
+      <div className="flex flex-col items-center gap-4">
         {!connected ? (
-          <a href="/api/spotify/login" style={{ padding: "10px 16px", border: "1px solid #ccc", borderRadius: 6 }}>Connect to Spotify</a>
+          <a href="/api/spotify/login" className="px-4 py-2 border border-gray-300 rounded-md">Connect to Spotify</a>
         ) : (
-          <div style={{ textAlign: "center" }}>
+          <div className="text-center">
             {loading && !data ? (
               <p>Loading...</p>
             ) : data && data.isPlaying && data.track ? (
               <div>
                 {data.track.albumImageUrl ? (
-                  // eslint-disable-next-line @next/next/no-img-element
-                  <img
+                  <Image
                     src={data.track.albumImageUrl}
                     alt={data.track.album}
                     width={200}
                     height={200}
-                    style={{ display: "block", margin: "0 auto 12px" }}
+                    className="block mx-auto mb-3"
+                    unoptimized
                   />
                 ) : null}
-                <p style={{ fontSize: 18, fontWeight: 600 }}>{data.track.name}</p>
+                <p className="text-lg font-semibold">{data.track.name}</p>
                 <p>{data.track.artists}</p>
-                <p style={{ color: "#666" }}>{data.track.album}</p>
+                <p className="text-gray-500">{data.track.album}</p>
                 {data.track.url ? (
-                  <p style={{ marginTop: 8 }}>
+                  <p className="mt-2">
                     <a href={data.track.url} target="_blank" rel="noreferrer">Open in Spotify</a>
                   </p>
                 ) : null}
