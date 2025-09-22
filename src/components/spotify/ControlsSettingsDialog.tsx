@@ -7,6 +7,7 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
+import Link from "next/link";
 
 type Props = {
   controlsEnabled: boolean;
@@ -46,6 +47,17 @@ export function ControlsSettingsDialog({
             />
             Enable animated gradient background
           </label>
+        </div>
+        <div className="flex justify-center gap-1 text-xs">
+          <span>made with ❤️ by </span>
+          <Link
+            href="https://henr.ee"
+            target="_blank"
+            rel="noreferrer"
+            className="text-blue-900 hover:underline"
+          >
+            henr.ee
+          </Link>
         </div>
       </DialogContent>
     </Dialog>
