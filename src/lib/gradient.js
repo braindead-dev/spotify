@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-this-alias, @typescript-eslint/no-unused-expressions, @typescript-eslint/no-unused-vars */
 /*
  *   Stripe WebGl Gradient Animation
  *   All Credits to Stripe.com

@@ -1,14 +1,15 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { Attribution } from "@/components/site/attribution";
 import { useNowPlaying } from "@/hooks/useNowPlaying";
 import { ConnectButton } from "@/components/spotify/ConnectButton";
 import { NowPlayingCard } from "@/components/spotify/NowPlayingCard";
+import { extractDistinctPaletteFromImage } from "@/lib/colorExtract";
 
 export default function Home() {
   const { data, loading, connected } = useNowPlaying(5000);
   const [gradientEnabled, setGradientEnabled] = useState<boolean>(false);
+  const [gradientColors, setGradientColors] = useState<string[] | null>(null);
 
   // Read persisted gradient toggle on mount
   useEffect(() => {
@@ -24,6 +25,36 @@ export default function Home() {
       localStorage.setItem("gradientEnabled", String(gradientEnabled));
     } catch {}
   }, [gradientEnabled]);
+
+  // Compute colors from the current album cover when enabled/changed
+  useEffect(() => {
+    const url = data?.track?.albumImageUrl;
+    if (!gradientEnabled || !connected || !url) {
+      setGradientColors(null);
+      return;
+    }
+    let cancelled = false;
+    (async () => {
+      const colors = await extractDistinctPaletteFromImage(url, {
+        desiredCount: 4,
+        thresholds: [0.1, 0.05, 0.02, 0.005, 0],
+        sampleSize: 100,
+        minSaturation: 0.05,
+      });
+      if (cancelled) return;
+      if (colors && colors.length > 0) {
+        // Ensure 4 colors by padding with the first one if necessary
+        const padded = [...colors];
+        while (padded.length < 4) padded.push(padded[0]);
+        setGradientColors(padded.slice(0, 4));
+      } else {
+        setGradientColors(null);
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, [gradientEnabled, connected, data?.track?.albumImageUrl]);
 
   // Initialize full-page gradient when enabled
   useEffect(() => {
@@ -55,7 +86,8 @@ export default function Home() {
           (mod?.Gradient as GradientCtor | undefined) ?? globalGradient;
         if (!Gradient) return;
         const g = new Gradient();
-        g.initGradient("#gradient-canvas", fallback.getRandomGradient());
+        const colors = gradientColors ?? fallback.getRandomGradient();
+        g.initGradient("#gradient-canvas", colors);
       } catch {
         console.warn(
           "Gradient engine not found. Copy chroma-ai gradient files to enable.",
@@ -63,7 +95,7 @@ export default function Home() {
       }
     };
     init();
-  }, [gradientEnabled, connected]);
+  }, [gradientEnabled, connected, gradientColors, data?.track?.albumImageUrl]);
 
   return (
     <main className="relative flex min-h-screen items-center justify-center p-6">
@@ -85,9 +117,6 @@ export default function Home() {
             onChangeGradient={setGradientEnabled}
           />
         )}
-      </div>
-      <div className="fixed right-4 bottom-4 z-50 hidden md:block">
-        <Attribution />
       </div>
     </main>
   );
