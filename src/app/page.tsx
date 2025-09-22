@@ -52,7 +52,13 @@ export default function Home() {
               <div>
                 {data.track.albumImageUrl ? (
                   // eslint-disable-next-line @next/next/no-img-element
-                  <img src={data.track.albumImageUrl} alt={data.track.album} width={200} height={200} style={{ marginBottom: 12 }} />
+                  <img
+                    src={data.track.albumImageUrl}
+                    alt={data.track.album}
+                    width={200}
+                    height={200}
+                    style={{ display: "block", margin: "0 auto 12px" }}
+                  />
                 ) : null}
                 <p style={{ fontSize: 18, fontWeight: 600 }}>{data.track.name}</p>
                 <p>{data.track.artists}</p>
