@@ -23,6 +23,10 @@ export function NowPlayingCard({
   const [prevLoading, setPrevLoading] = useState(false);
   const [nextLoading, setNextLoading] = useState(false);
   const [controlsEnabled, setControlsEnabled] = useState<boolean>(false);
+  const [bgLightness, setBgLightness] = useState<number | null>(null);
+  const LIGHTNESS_THRESHOLD = 0.75; // 0..1 range; treat backgrounds brighter than this as "light"
+  // Safe album image URL for effects; do not rely on early returns
+  const albumImageUrl = data?.track?.albumImageUrl ?? null;
   useEffect(() => {
     try {
       const stored = localStorage.getItem("controlsEnabled");
@@ -57,6 +61,67 @@ export function NowPlayingCard({
       setNextLoading(false);
     }
   };
+  // Compute an approximate background lightness from the album art when available
+  useEffect(() => {
+    let canceled = false;
+    async function computeLightnessFromImage(url: string) {
+      try {
+        const img = await new Promise<HTMLImageElement>((resolve, reject) => {
+          const i = document.createElement("img");
+          i.crossOrigin = "anonymous";
+          i.decoding = "async";
+          i.onload = () => resolve(i);
+          i.onerror = reject;
+          i.src = url;
+        });
+        const sample = 32;
+        const canvas = document.createElement("canvas");
+        const ratio = Math.max(img.naturalWidth, img.naturalHeight) / sample;
+        const w = Math.max(1, Math.round(img.naturalWidth / ratio));
+        const h = Math.max(1, Math.round(img.naturalHeight / ratio));
+        canvas.width = w;
+        canvas.height = h;
+        const ctx = canvas.getContext("2d", { willReadFrequently: true });
+        if (!ctx) return null;
+        ctx.drawImage(img, 0, 0, w, h);
+        let imageData: ImageData;
+        try {
+          imageData = ctx.getImageData(0, 0, w, h);
+        } catch {
+          return null; // CORS taint; skip
+        }
+        const data = imageData.data;
+        let sum = 0;
+        let count = 0;
+        for (let i = 0; i < data.length; i += 4) {
+          const r = data[i];
+          const g = data[i + 1];
+          const b = data[i + 2];
+          const a = data[i + 3];
+          if (a < 200) continue;
+          // Perceived luminance (sRGB approximation)
+          const lum = (0.2126 * r + 0.7152 * g + 0.0722 * b) / 255;
+          sum += lum;
+          count++;
+        }
+        return count ? sum / count : null;
+      } catch {
+        return null;
+      }
+    }
+
+    if (albumImageUrl) {
+      computeLightnessFromImage(albumImageUrl).then((lum) => {
+        if (!canceled) setBgLightness(lum);
+      });
+    } else {
+      setBgLightness(null);
+    }
+    return () => {
+      canceled = true;
+    };
+  }, [albumImageUrl]);
+
   if (loading && !data) {
     return <p>...</p>;
   }
@@ -66,6 +131,22 @@ export function NowPlayingCard({
   }
 
   const track = data.track;
+
+  const isLightBg = !gradientEnabled
+    ? true
+    : bgLightness !== null
+      ? bgLightness >= LIGHTNESS_THRESHOLD
+      : false; // if unknown, assume dark to preserve contrast over gradient
+
+  const titleClasses = isLightBg
+    ? "text-lg font-semibold text-black"
+    : "text-lg font-semibold text-white drop-shadow-sm-dark";
+  const artistLinkClasses = isLightBg
+    ? "hover:underline text-black"
+    : "hover:underline text-white drop-shadow-sm-dark";
+  const albumClasses = isLightBg
+    ? "text-neutral-500"
+    : "text-neutral-200 drop-shadow-xs-dark";
 
   return (
     <div className="relative text-center">
@@ -115,7 +196,7 @@ export function NowPlayingCard({
         </div>
       ) : null}
 
-      <p className="drop-shadow-sm-dark text-lg font-semibold text-white">
+      <p className={titleClasses}>
         {track.url ? (
           <Link
             href={track.url}
@@ -136,7 +217,7 @@ export function NowPlayingCard({
             href={track.artistUrl}
             target="_blank"
             rel="noreferrer"
-            className="drop-shadow-sm-dark text-white hover:underline"
+            className={artistLinkClasses}
           >
             {track.artists}
           </Link>
@@ -145,7 +226,7 @@ export function NowPlayingCard({
         )}
       </p>
 
-      <p className="drop-shadow-xs-dark text-gray-200">
+      <p className={albumClasses}>
         {track.albumUrl ? (
           <Link
             href={track.albumUrl}
