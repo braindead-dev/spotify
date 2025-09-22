@@ -16,11 +16,12 @@ export async function GET() {
   const clientId = process.env.SPOTIFY_CLIENT_ID!;
   const redirectUri = process.env.NEXT_PUBLIC_BASE_URL
     ? `${process.env.NEXT_PUBLIC_BASE_URL}/api/spotify/callback`
-    : `http://localhost:3000/api/spotify/callback`;
+    : `http://127.0.0.1:3000/api/spotify/callback`;
 
   const scope = [
     "user-read-currently-playing",
     "user-read-playback-state",
+    "user-modify-playback-state",
   ].join(" ");
 
   const state = generateRandomString(16);
