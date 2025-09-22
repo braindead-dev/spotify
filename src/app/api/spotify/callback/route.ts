@@ -9,7 +9,7 @@ export async function GET(req: NextRequest) {
   const isProd = process.env.NODE_ENV === "production";
 
   if (!code || !state || !storedState || state !== storedState) {
-    return NextResponse.redirect(new URL("/" , url.origin));
+    return NextResponse.redirect(new URL("/", url.origin));
   }
 
   const clientId = process.env.SPOTIFY_CLIENT_ID!;

@@ -22,7 +22,9 @@ export default function Home() {
   const fetchNowPlaying = async () => {
     setLoading(true);
     try {
-      const res = await fetch("/api/spotify/now-playing", { cache: "no-store" });
+      const res = await fetch("/api/spotify/now-playing", {
+        cache: "no-store",
+      });
       const json = (await res.json()) as NowPlaying;
       setData(json);
     } catch (e) {
@@ -44,7 +46,12 @@ export default function Home() {
     <main className="min-h-screen flex items-center justify-center p-6">
       <div className="flex flex-col items-center gap-4">
         {!connected ? (
-          <a href="/api/spotify/login" className="px-4 py-2 border border-gray-300 rounded-md">Connect to Spotify</a>
+          <a
+            href="/api/spotify/login"
+            className="px-4 py-2 border border-gray-300 rounded-md"
+          >
+            Connect to Spotify
+          </a>
         ) : (
           <div className="text-center">
             {loading && !data ? (
@@ -66,7 +73,9 @@ export default function Home() {
                 <p className="text-gray-500">{data.track.album}</p>
                 {data.track.url ? (
                   <p className="mt-2">
-                    <a href={data.track.url} target="_blank" rel="noreferrer">Open in Spotify</a>
+                    <a href={data.track.url} target="_blank" rel="noreferrer">
+                      Open in Spotify
+                    </a>
                   </p>
                 ) : null}
               </div>

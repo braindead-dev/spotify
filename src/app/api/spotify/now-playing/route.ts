@@ -80,23 +80,32 @@ export async function GET() {
       }
     } catch (err) {
       console.error("Failed to refresh Spotify token", err);
-      return NextResponse.json({ authenticated: false, message: "Failed to refresh token" }, { status: 401 });
+      return NextResponse.json(
+        { authenticated: false, message: "Failed to refresh token" },
+        { status: 401 },
+      );
     }
   }
 
-  const res = await fetch("https://api.spotify.com/v1/me/player/currently-playing", {
-    headers: {
-      Authorization: `Bearer ${accessToken}`,
+  const res = await fetch(
+    "https://api.spotify.com/v1/me/player/currently-playing",
+    {
+      headers: {
+        Authorization: `Bearer ${accessToken}`,
+      },
+      // next: { revalidate: 0 },
     },
-    // next: { revalidate: 0 },
-  });
+  );
 
   if (res.status === 204) {
     return NextResponse.json({ authenticated: true, isPlaying: false });
   }
 
   if (!res.ok) {
-    return NextResponse.json({ authenticated: true, isPlaying: false }, { status: res.status });
+    return NextResponse.json(
+      { authenticated: true, isPlaying: false },
+      { status: res.status },
+    );
   }
 
   const data = await res.json();
@@ -105,12 +114,18 @@ export async function GET() {
   const nowPlaying = item
     ? {
         name: item.name as string,
-        artists: (item.artists || []).map((a: { name: string }) => a.name).join(", "),
+        artists: (item.artists || [])
+          .map((a: { name: string }) => a.name)
+          .join(", "),
         album: item.album?.name as string,
         albumImageUrl: item.album?.images?.[0]?.url as string | undefined,
         url: item.external_urls?.spotify as string | undefined,
       }
     : null;
 
-  return NextResponse.json({ authenticated: true, isPlaying: !!item, track: nowPlaying });
+  return NextResponse.json({
+    authenticated: true,
+    isPlaying: !!item,
+    track: nowPlaying,
+  });
 }
