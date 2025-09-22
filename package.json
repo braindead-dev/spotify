@@ -7,12 +7,13 @@
     "build": "next build",
     "start": "next start",
     "lint": "eslint",
-    "format": "prettier --write \"**/*.{js,jsx,ts,tsx,json,css,md,mdx,yml,yaml,mjs,cjs}\""
+    "format": "npx prettier --write ."
   },
   "dependencies": {
     "clsx": "^2.1.1",
     "motion": "^12.23.16",
     "next": "15.5.3",
+    "prettier-plugin-tailwindcss": "^0.6.14",
     "react": "19.1.0",
     "react-dom": "19.1.0",
     "react-icons": "^5.5.0",

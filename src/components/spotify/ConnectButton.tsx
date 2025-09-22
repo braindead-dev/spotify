@@ -13,7 +13,7 @@ export function ConnectButton() {
       className="px-2 py-1"
     >
       Connect to Spotify
-      <FaSpotify className="text-green-500 -ml-0.5" />
+      <FaSpotify className="-ml-0.5 text-green-500" />
     </Button>
   );
 }

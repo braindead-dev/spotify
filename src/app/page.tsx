@@ -9,7 +9,7 @@ export default function Home() {
   const { data, loading, connected } = useNowPlaying(5000);
 
   return (
-    <main className="min-h-screen flex items-center justify-center p-6">
+    <main className="flex min-h-screen items-center justify-center p-6">
       <div className="flex flex-col items-center gap-4">
         {!connected ? (
           <ConnectButton />
