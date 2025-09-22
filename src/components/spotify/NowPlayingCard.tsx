@@ -10,87 +10,38 @@ import { ControlsSettingsDialog } from "@/components/spotify/ControlsSettingsDia
 type Props = {
   data: NowPlaying | null;
   loading: boolean;
+  gradientEnabled?: boolean;
+  onChangeGradient?: (enabled: boolean) => void;
 };
 
-export function NowPlayingCard({ data, loading }: Props) {
+export function NowPlayingCard({
+  data,
+  loading,
+  gradientEnabled = false,
+  onChangeGradient = () => {},
+}: Props) {
   const [prevLoading, setPrevLoading] = useState(false);
   const [nextLoading, setNextLoading] = useState(false);
   const [controlsEnabled, setControlsEnabled] = useState<boolean>(false);
-  const [gradientEnabled, setGradientEnabled] = useState<boolean>(false);
-
   useEffect(() => {
     try {
       const stored = localStorage.getItem("controlsEnabled");
       if (stored !== null) setControlsEnabled(stored === "true");
-      const storedGrad = localStorage.getItem("gradientEnabled");
-      if (storedGrad !== null) setGradientEnabled(storedGrad === "true");
     } catch {}
   }, []);
 
   useEffect(() => {
     try {
       localStorage.setItem("controlsEnabled", String(controlsEnabled));
-    } catch {}
+    } catch (error) {}
   }, [controlsEnabled]);
-
-  useEffect(() => {
-    try {
-      localStorage.setItem("gradientEnabled", String(gradientEnabled));
-    } catch {}
-  }, [gradientEnabled]);
-
-  // Initialize gradient when enabled
-  useEffect(() => {
-    if (!gradientEnabled) return;
-    // Expect the user to copy gradient engine here: '@/lib/gradient.js'
-    // We try to access a global Gradient if present.
-    const init = async () => {
-      try {
-        // Try dynamic import if the module exists
-        const mod = (await import("@/lib/gradient.js").catch(() => null)) as {
-          Gradient?: new () => {
-            initGradient: (selector: string, colors: string[]) => unknown;
-          };
-        } | null;
-        const fallback = (await import("@/lib/defaultGradient.js").catch(
-          () => ({
-            getRandomGradient: () => [
-              "#c3e4ff",
-              "#6ec3f4",
-              "#eae2ff",
-              "#b9beff",
-            ],
-          }),
-        )) as { getRandomGradient: () => string[] };
-        type GradientCtor = new () => {
-          initGradient: (selector: string, colors: string[]) => unknown;
-        };
-        const globalGradient = (
-          globalThis as unknown as { Gradient?: GradientCtor }
-        ).Gradient;
-        const Gradient =
-          (mod?.Gradient as GradientCtor | undefined) ?? globalGradient;
-        if (!Gradient) return;
-        const g = new Gradient();
-        g.initGradient("#gradient-canvas", fallback.getRandomGradient());
-      } catch (e) {
-        console.warn(
-          "Gradient engine not found. Copy chroma-ai gradient files to enable.",
-        );
-      }
-    };
-    init();
-    return () => {
-      // no-op; the engine manages its own animation loop
-    };
-  }, [gradientEnabled]);
 
   const onPrev = async () => {
     try {
       setPrevLoading(true);
       await fetch("/api/spotify/previous", { method: "POST" });
-    } catch (e) {
-      console.error(e);
+    } catch (error) {
+      console.error(error);
     } finally {
       setPrevLoading(false);
     }
@@ -100,8 +51,8 @@ export function NowPlayingCard({ data, loading }: Props) {
     try {
       setNextLoading(true);
       await fetch("/api/spotify/next", { method: "POST" });
-    } catch (e) {
-      console.error(e);
+    } catch (error) {
+      console.error(error);
     } finally {
       setNextLoading(false);
     }
@@ -122,15 +73,8 @@ export function NowPlayingCard({ data, loading }: Props) {
         controlsEnabled={controlsEnabled}
         onChange={setControlsEnabled}
         gradientEnabled={gradientEnabled}
-        onChangeGradient={setGradientEnabled}
+        onChangeGradient={onChangeGradient}
       />
-      {gradientEnabled && (
-        <canvas
-          id="gradient-canvas"
-          className={`pointer-events-none absolute inset-0 -z-10 h-full w-full rounded-xl`}
-          data-transition-in
-        />
-      )}
       {track.albumImageUrl ? (
         <div className="relative mb-3 inline-block">
           <Link
