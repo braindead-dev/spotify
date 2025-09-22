@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import Image from "next/image";
 import { Button } from "@/components/ui/button";
 import { FaSpotify } from "react-icons/fa";
+import { Attribution } from "@/components/site/attribution";
 
 type NowPlaying = {
   authenticated: boolean;
@@ -74,22 +75,57 @@ export default function Home() {
                     unoptimized
                   />
                 ) : null}
-                <p className="text-lg font-semibold">{data.track.name}</p>
-                <p>{data.track.artists}</p>
-                <p className="text-gray-500">{data.track.album}</p>
-                {data.track.url ? (
-                  <p className="mt-2">
-                    <a href={data.track.url} target="_blank" rel="noreferrer">
-                      Open in Spotify
+                <p className="text-lg font-semibold">
+                  {data.track.url ? (
+                    <a
+                      href={data.track.url}
+                      target="_blank"
+                      rel="noreferrer"
+                      className="hover:underline"
+                    >
+                      {data.track.name}
                     </a>
-                  </p>
-                ) : null}
+                  ) : (
+                    data.track.name
+                  )}
+                </p>
+                <p>
+                  {data.track.url ? (
+                    <a
+                      href={data.track.url}
+                      target="_blank"
+                      rel="noreferrer"
+                      className="hover:underline"
+                    >
+                      {data.track.artists}
+                    </a>
+                  ) : (
+                    data.track.artists
+                  )}
+                </p>
+                <p className="text-gray-500">
+                  {data.track.url ? (
+                    <a
+                      href={data.track.url}
+                      target="_blank"
+                      rel="noreferrer"
+                      className="hover:underline"
+                    >
+                      {data.track.album}
+                    </a>
+                  ) : (
+                    data.track.album
+                  )}
+                </p>
               </div>
             ) : (
               <p>Not playing anything right now.</p>
             )}
           </div>
         )}
+      </div>
+      <div className="fixed right-4 bottom-4 z-50 hidden md:block">
+        <Attribution />
       </div>
     </main>
   );
