@@ -15,6 +15,8 @@ type NowPlaying = {
     album: string;
     albumImageUrl?: string;
     url?: string;
+    artistUrl?: string;
+    albumUrl?: string;
   } | null;
 };
 
@@ -90,9 +92,9 @@ export default function Home() {
                   )}
                 </p>
                 <p>
-                  {data.track.url ? (
+                  {data.track.artistUrl ? (
                     <a
-                      href={data.track.url}
+                      href={data.track.artistUrl}
                       target="_blank"
                       rel="noreferrer"
                       className="hover:underline"
@@ -104,9 +106,9 @@ export default function Home() {
                   )}
                 </p>
                 <p className="text-gray-500">
-                  {data.track.url ? (
+                  {data.track.albumUrl ? (
                     <a
-                      href={data.track.url}
+                      href={data.track.albumUrl}
                       target="_blank"
                       rel="noreferrer"
                       className="hover:underline"

@@ -120,6 +120,12 @@ export async function GET() {
         album: item.album?.name as string,
         albumImageUrl: item.album?.images?.[0]?.url as string | undefined,
         url: item.external_urls?.spotify as string | undefined,
+        artistUrl: (item.artists?.[0]?.external_urls?.spotify ?? undefined) as
+          | string
+          | undefined,
+        albumUrl: (item.album?.external_urls?.spotify ?? undefined) as
+          | string
+          | undefined,
       }
     : null;
 
