@@ -105,7 +105,7 @@ export function NowPlayingCard({
               alt={track.album}
               width={200}
               height={200}
-              className="mx-auto block"
+              className="mx-auto block rounded-lg"
               unoptimized
             />
           </Link>
