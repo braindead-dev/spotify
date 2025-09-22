@@ -93,29 +93,29 @@ export function NowPlayingCard({
             />
           </Link>
           {controlsEnabled && (
-            <button
-              aria-label="Previous"
-              onClick={onPrev}
-              disabled={prevLoading}
-              className="absolute top-1/2 -left-24 -translate-y-1/2 cursor-pointer disabled:opacity-50"
-            >
-              <MdSkipPrevious size={24} />
-            </button>
-          )}
-          {controlsEnabled && (
-            <button
-              aria-label="Next"
-              onClick={onNext}
-              disabled={nextLoading}
-              className="absolute top-1/2 -right-24 -translate-y-1/2 cursor-pointer disabled:opacity-50"
-            >
-              <MdSkipNext size={24} />
-            </button>
+            <>
+              <button
+                aria-label="Previous"
+                onClick={onPrev}
+                disabled={prevLoading}
+                className="drop-shadow-xs-dark absolute top-1/2 -left-24 -translate-y-1/2 cursor-pointer text-white disabled:opacity-50"
+              >
+                <MdSkipPrevious size={24} />
+              </button>
+              <button
+                aria-label="Next"
+                onClick={onNext}
+                disabled={nextLoading}
+                className="drop-shadow-xs-dark absolute top-1/2 -right-24 -translate-y-1/2 cursor-pointer text-white disabled:opacity-50"
+              >
+                <MdSkipNext size={24} />
+              </button>
+            </>
           )}
         </div>
       ) : null}
 
-      <p className="text-lg font-semibold">
+      <p className="drop-shadow-sm-dark text-lg font-semibold text-white">
         {track.url ? (
           <Link
             href={track.url}
@@ -136,7 +136,7 @@ export function NowPlayingCard({
             href={track.artistUrl}
             target="_blank"
             rel="noreferrer"
-            className="hover:underline"
+            className="drop-shadow-sm-dark text-white hover:underline"
           >
             {track.artists}
           </Link>
@@ -145,7 +145,7 @@ export function NowPlayingCard({
         )}
       </p>
 
-      <p className="text-gray-500">
+      <p className="drop-shadow-xs-dark text-gray-200">
         {track.albumUrl ? (
           <Link
             href={track.albumUrl}

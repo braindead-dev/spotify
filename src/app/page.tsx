@@ -5,17 +5,23 @@ import { useNowPlaying } from "@/hooks/useNowPlaying";
 import { ConnectButton } from "@/components/spotify/ConnectButton";
 import { NowPlayingCard } from "@/components/spotify/NowPlayingCard";
 import { extractDistinctPaletteFromImage } from "@/lib/colorExtract";
+import { ControlsSettingsDialog } from "@/components/spotify/ControlsSettingsDialog";
 
 export default function Home() {
   const { data, loading, connected } = useNowPlaying(5000);
   const [gradientEnabled, setGradientEnabled] = useState<boolean>(false);
   const [gradientColors, setGradientColors] = useState<string[] | null>(null);
+  const [controlsEnabledForDialog, setControlsEnabledForDialog] =
+    useState<boolean>(false);
 
   // Read persisted gradient toggle on mount
   useEffect(() => {
     try {
       const storedGrad = localStorage.getItem("gradientEnabled");
       if (storedGrad !== null) setGradientEnabled(storedGrad === "true");
+      const storedControls = localStorage.getItem("controlsEnabled");
+      if (storedControls !== null)
+        setControlsEnabledForDialog(storedControls === "true");
     } catch {}
   }, []);
 
@@ -56,9 +62,10 @@ export default function Home() {
     };
   }, [gradientEnabled, connected, data?.track?.albumImageUrl]);
 
-  // Initialize full-page gradient when enabled
+  // Initialize full-page gradient when enabled, when colors exist, and when a song is playing
   useEffect(() => {
-    if (!gradientEnabled || !connected) return;
+    if (!gradientEnabled || !connected || !data?.isPlaying || !gradientColors)
+      return;
     const init = async () => {
       try {
         const mod = (await import("@/lib/gradient.js").catch(() => null)) as {
@@ -66,16 +73,6 @@ export default function Home() {
             initGradient: (selector: string, colors: string[]) => unknown;
           };
         } | null;
-        const fallback = (await import("@/lib/defaultGradient.js").catch(
-          () => ({
-            getRandomGradient: () => [
-              "#c3e4ff",
-              "#6ec3f4",
-              "#eae2ff",
-              "#b9beff",
-            ],
-          }),
-        )) as { getRandomGradient: () => string[] };
         type GradientCtor = new () => {
           initGradient: (selector: string, colors: string[]) => unknown;
         };
@@ -86,8 +83,7 @@ export default function Home() {
           (mod?.Gradient as GradientCtor | undefined) ?? globalGradient;
         if (!Gradient) return;
         const g = new Gradient();
-        const colors = gradientColors ?? fallback.getRandomGradient();
-        g.initGradient("#gradient-canvas", colors);
+        g.initGradient("#gradient-canvas", gradientColors);
       } catch {
         console.warn(
           "Gradient engine not found. Copy chroma-ai gradient files to enable.",
@@ -95,11 +91,17 @@ export default function Home() {
       }
     };
     init();
-  }, [gradientEnabled, connected, gradientColors, data?.track?.albumImageUrl]);
+  }, [
+    gradientEnabled,
+    connected,
+    gradientColors,
+    data?.isPlaying,
+    data?.track?.albumImageUrl,
+  ]);
 
   return (
     <main className="relative flex min-h-screen items-center justify-center p-6">
-      {gradientEnabled && connected && (
+      {gradientEnabled && connected && data?.isPlaying && gradientColors && (
         <canvas
           id="gradient-canvas"
           className="pointer-events-none fixed inset-0 -z-10 h-full w-full"
@@ -118,6 +120,15 @@ export default function Home() {
           />
         )}
       </div>
+      {/* Show settings icon even when not playing */}
+      {(!data || !data.isPlaying) && (
+        <ControlsSettingsDialog
+          controlsEnabled={controlsEnabledForDialog}
+          onChange={setControlsEnabledForDialog}
+          gradientEnabled={gradientEnabled}
+          onChangeGradient={setGradientEnabled}
+        />
+      )}
     </main>
   );
 }
