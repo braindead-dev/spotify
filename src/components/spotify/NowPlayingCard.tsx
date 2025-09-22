@@ -2,6 +2,7 @@
 
 import Image from "next/image";
 import type { NowPlaying } from "@/types/spotify";
+import Link from "next/link";
 
 type Props = {
   data: NowPlaying | null;
@@ -22,26 +23,23 @@ export function NowPlayingCard({ data, loading }: Props) {
   return (
     <div className="text-center">
       {track.albumImageUrl ? (
-        <Image
-          src={track.albumImageUrl}
-          alt={track.album}
-          width={200}
-          height={200}
-          className="block mx-auto mb-3"
-          unoptimized
-        />
+        <Link href={track.albumUrl || "#"}>
+          <Image
+            src={track.albumImageUrl}
+            alt={track.album}
+            width={200}
+            height={200}
+            className="block mx-auto mb-3"
+            unoptimized
+          />
+        </Link>
       ) : null}
 
       <p className="text-lg font-semibold">
         {track.url ? (
-          <a
-            href={track.url}
-            target="_blank"
-            rel="noreferrer"
-            className="hover:underline"
-          >
+          <Link href={track.url} target="_blank" rel="noreferrer">
             {track.name}
-          </a>
+          </Link>
         ) : (
           track.name
         )}
@@ -49,14 +47,9 @@ export function NowPlayingCard({ data, loading }: Props) {
 
       <p>
         {track.artistUrl ? (
-          <a
-            href={track.artistUrl}
-            target="_blank"
-            rel="noreferrer"
-            className="hover:underline"
-          >
+          <Link href={track.artistUrl} target="_blank" rel="noreferrer">
             {track.artists}
-          </a>
+          </Link>
         ) : (
           track.artists
         )}
@@ -64,14 +57,9 @@ export function NowPlayingCard({ data, loading }: Props) {
 
       <p className="text-gray-500">
         {track.albumUrl ? (
-          <a
-            href={track.albumUrl}
-            target="_blank"
-            rel="noreferrer"
-            className="hover:underline"
-          >
+          <Link href={track.albumUrl} target="_blank" rel="noreferrer">
             {track.album}
-          </a>
+          </Link>
         ) : (
           track.album
         )}
