@@ -589,9 +589,15 @@ class Gradient {
       e(this, "addIsLoadedClass", () => {
         /*this.isIntersecting && */ !this.isLoadedClass &&
           ((this.isLoadedClass = !0),
-          this.el.classList.add("isLoaded"),
+          this.el && this.el.classList && this.el.classList.add("isLoaded"),
           setTimeout(() => {
-            this.el.parentElement.classList.add("isLoaded");
+            if (
+              this.el &&
+              this.el.parentElement &&
+              this.el.parentElement.classList
+            ) {
+              this.el.parentElement.classList.add("isLoaded");
+            }
           }, 3e3));
       }),
       e(this, "pause", () => {

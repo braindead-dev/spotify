@@ -33,7 +33,7 @@ export function NowPlayingCard({
   useEffect(() => {
     try {
       localStorage.setItem("controlsEnabled", String(controlsEnabled));
-    } catch (error) {}
+    } catch {}
   }, [controlsEnabled]);
 
   const onPrev = async () => {
