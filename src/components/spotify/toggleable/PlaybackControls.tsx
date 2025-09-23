@@ -8,6 +8,7 @@ type PlaybackControlsProps = {
   onNext: () => void | Promise<void>;
   prevLoading?: boolean;
   nextLoading?: boolean;
+  isLightBg: boolean;
 };
 
 export function PlaybackControls({
@@ -15,14 +16,18 @@ export function PlaybackControls({
   onNext,
   prevLoading,
   nextLoading,
+  isLightBg,
 }: PlaybackControlsProps) {
+  const colorShadow = isLightBg
+    ? "text-black"
+    : "text-white drop-shadow-sm-dark";
   return (
     <>
       <button
         aria-label="Previous"
         onClick={onPrev}
         disabled={!!prevLoading}
-        className="drop-shadow-xs-dark absolute top-1/2 -left-12 -translate-y-1/2 cursor-pointer text-white disabled:opacity-50 sm:-left-24"
+        className={`absolute top-1/2 -left-12 -translate-y-1/2 cursor-pointer disabled:opacity-50 sm:-left-24 ${colorShadow}`}
       >
         <MdSkipPrevious size={24} />
       </button>
@@ -30,7 +35,7 @@ export function PlaybackControls({
         aria-label="Next"
         onClick={onNext}
         disabled={!!nextLoading}
-        className="drop-shadow-xs-dark absolute top-1/2 -right-12 -translate-y-1/2 cursor-pointer text-white disabled:opacity-50 sm:-right-24"
+        className={`absolute top-1/2 -right-12 -translate-y-1/2 cursor-pointer disabled:opacity-50 sm:-right-24 ${colorShadow}`}
       >
         <MdSkipNext size={24} />
       </button>

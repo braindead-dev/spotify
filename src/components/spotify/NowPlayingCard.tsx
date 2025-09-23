@@ -20,6 +20,7 @@ type Props = {
   data: NowPlaying | null;
   loading: boolean;
   gradientEnabled?: boolean;
+  gradientColors?: string[] | null;
   onChangeGradient?: (enabled: boolean) => void;
   refresh?: () => void;
   progressBarEnabled?: boolean;
@@ -32,6 +33,7 @@ export function NowPlayingCard({
   data,
   loading,
   gradientEnabled = false,
+  gradientColors = null,
   onChangeGradient = () => {},
   refresh,
   progressBarEnabled = true,
@@ -94,6 +96,29 @@ export function NowPlayingCard({
     if (!incomingId && !currentId) return; // nothing to show
     if (incomingId === currentId) return; // same track
 
+    try {
+      console.groupCollapsed(
+        "[NowPlaying] Track change -> current:%s incoming:%s",
+        currentId,
+        incomingId,
+      );
+      console.debug("prev", {
+        id: displayedTrack?.id,
+        name: displayedTrack?.name,
+        album: displayedTrack?.album,
+        albumImageUrl: displayedTrack?.albumImageUrl,
+        artists: displayedTrack?.artists,
+      });
+      console.debug("next", {
+        id: newTrack?.id,
+        name: newTrack?.name,
+        album: newTrack?.album,
+        albumImageUrl: newTrack?.albumImageUrl,
+        artists: newTrack?.artists,
+      });
+      console.groupEnd();
+    } catch {}
+
     if (transitionsEnabled && displayedTrack) {
       setFading(true);
       if (fadeTimerRef.current) {
@@ -119,6 +144,7 @@ export function NowPlayingCard({
 
   const { isLightBg } = useBackgroundLightness(albumImageUrl, gradientEnabled, {
     threshold: LIGHTNESS_THRESHOLD,
+    gradientColors,
   });
 
   if (loading && !data) {
@@ -170,6 +196,7 @@ export function NowPlayingCard({
                       src={track.albumImageUrl}
                       alt={track.album}
                       fill
+                      priority
                       className={`rounded-lg ${isLightBg ? "" : "shadow-xl"}`}
                       style={{ objectFit: "cover" }}
                       unoptimized
@@ -183,6 +210,7 @@ export function NowPlayingCard({
                 alt={track.album}
                 width={200}
                 height={200}
+                priority
                 className={`mx-auto block rounded-lg ${isLightBg ? "" : "shadow-xl"}`}
                 unoptimized
               />
@@ -194,6 +222,7 @@ export function NowPlayingCard({
               onNext={onNext}
               prevLoading={prevLoading}
               nextLoading={nextLoading}
+              isLightBg={isLightBg}
             />
           )}
         </div>

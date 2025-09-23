@@ -80,8 +80,20 @@ export default function Home() {
         // Ensure 4 colors by padding with the first one if necessary
         const padded = [...colors];
         while (padded.length < 4) padded.push(padded[0]);
+        try {
+          console.groupCollapsed("[Gradient Colors] computed", {
+            fromImage: url,
+            extracted: colors,
+            padded: padded.slice(0, 4),
+          });
+          console.groupEnd();
+        } catch {}
         setGradientColors(padded.slice(0, 4));
       } else {
+        try {
+          console.groupCollapsed("[Gradient Colors] none available -> cleared");
+          console.groupEnd();
+        } catch {}
         setGradientColors(null);
       }
     })();
@@ -150,6 +162,7 @@ export default function Home() {
             data={data}
             loading={loading}
             gradientEnabled={gradientEnabled}
+            gradientColors={gradientColors}
             onChangeGradient={setGradientEnabled}
             refresh={refresh}
             progressBarEnabled={progressBarEnabled}

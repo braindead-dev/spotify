@@ -16,22 +16,19 @@ export async function extractDistinctPaletteFromImage(
   const minSaturation = options?.minSaturation ?? 0.05;
 
   try {
+    // Direct image sampling; if CORS-tainted, we bail out with null
     const img = await loadImage(imageUrl);
-
-    // Draw into an offscreen canvas at a reduced resolution
     const { ctx, width, height } = createCanvas(
       img.naturalWidth,
       img.naturalHeight,
       sampleSize,
     );
     ctx.drawImage(img, 0, 0, width, height);
-
     let data: ImageData;
     try {
       data = ctx.getImageData(0, 0, width, height);
     } catch {
-      // CORS taint
-      return null;
+      return null; // CORS taint
     }
 
     // Histogram with coarse quantization to reduce bins
@@ -53,7 +50,22 @@ export async function extractDistinctPaletteFromImage(
       buckets.set(key, (buckets.get(key) ?? 0) + 1);
     }
 
-    if (buckets.size === 0) return null;
+    if (buckets.size === 0) {
+      // Retry without saturation filter for grayscale covers
+      try {
+        console.debug("[Gradient Extract] retry without saturation filter");
+      } catch {}
+      for (let i = 0; i < pixels.length; i += 4) {
+        const r = pixels[i];
+        const g = pixels[i + 1];
+        const b = pixels[i + 2];
+        const a = pixels[i + 3];
+        if (a < 200) continue;
+        const key = quantKey(r, g, b);
+        buckets.set(key, (buckets.get(key) ?? 0) + 1);
+      }
+      if (buckets.size === 0) return null;
+    }
 
     // Convert buckets back to representative colors and sort by counts
     const entries: { rgb: [number, number, number]; count: number }[] = [];
@@ -61,6 +73,23 @@ export async function extractDistinctPaletteFromImage(
       entries.push({ rgb: dequantKey(key), count });
     }
     entries.sort((a, b) => b.count - a.count);
+
+    // Debug: summarize extraction buckets and options
+    try {
+      console.groupCollapsed(
+        "[Gradient Extract] url=%s buckets=%d sample=%d sat>=%.02f desired=%d",
+        imageUrl,
+        buckets.size,
+        sampleSize,
+        minSaturation,
+        desiredCount,
+      );
+      const preview = entries
+        .slice(0, Math.min(6, entries.length))
+        .map((e) => rgbToHex(e.rgb[0], e.rgb[1], e.rgb[2]));
+      console.debug("topColors", preview);
+      console.debug("thresholds", thresholds);
+    } catch {}
 
     // Enforce distinctness via Euclidean distance in normalized RGB
     for (const t of thresholds) {
@@ -72,14 +101,24 @@ export async function extractDistinctPaletteFromImage(
         }
       }
       if (selected.length > 0) {
-        return selected.map((c) => rgbToHex(c[0], c[1], c[2]));
+        const result = selected.map((c) => rgbToHex(c[0], c[1], c[2]));
+        try {
+          console.debug("selected@threshold", t, result);
+          console.groupEnd();
+        } catch {}
+        return result;
       }
     }
 
     // Fallback to the top bucket colors if all thresholds fail
-    return entries
+    const fallback = entries
       .slice(0, desiredCount)
       .map((e) => rgbToHex(e.rgb[0], e.rgb[1], e.rgb[2]));
+    try {
+      console.debug("fallbackSelected", fallback);
+      console.groupEnd();
+    } catch {}
+    return fallback;
   } catch {
     return null;
   }
