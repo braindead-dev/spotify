@@ -6,6 +6,7 @@ import { ConnectButton } from "@/components/spotify/ConnectButton";
 import { NowPlayingCard } from "@/components/spotify/NowPlayingCard";
 import { extractDistinctPaletteFromImage } from "@/lib/colorExtract";
 import { ControlsSettingsDialog } from "@/components/spotify/ControlsSettingsDialog";
+import { AnimatedGradient } from "@/components/spotify/toggleable/AnimatedGradient";
 
 export default function Home() {
   const { data, loading, connected, refresh } = useNowPlaying(5000);
@@ -88,6 +89,8 @@ export default function Home() {
   useEffect(() => {
     if (!gradientEnabled || !connected || !data?.isPlaying || !gradientColors)
       return;
+    // If transitions are enabled, AnimatedGradient handles initialization & crossfade
+    if (transitionsEnabled) return;
     const init = async () => {
       try {
         const mod = (await import("@/lib/gradient.js").catch(() => null)) as {
@@ -119,17 +122,24 @@ export default function Home() {
     gradientColors,
     data?.isPlaying,
     data?.track?.albumImageUrl,
+    transitionsEnabled,
   ]);
 
   return (
     <main className="relative flex min-h-screen items-center justify-center p-6">
-      {gradientEnabled && connected && data?.isPlaying && gradientColors && (
-        <canvas
-          id="gradient-canvas"
-          className="pointer-events-none fixed inset-0 -z-10 h-full w-full"
-          data-transition-in
-        />
-      )}
+      {gradientEnabled &&
+        connected &&
+        data?.isPlaying &&
+        gradientColors &&
+        (transitionsEnabled ? (
+          <AnimatedGradient colors={gradientColors} durationMs={350} />
+        ) : (
+          <canvas
+            id="gradient-canvas"
+            className="pointer-events-none fixed inset-0 -z-10 h-full w-full"
+            data-transition-in
+          />
+        ))}
       <div className="flex flex-col items-center gap-4">
         {!connected ? (
           <ConnectButton />
