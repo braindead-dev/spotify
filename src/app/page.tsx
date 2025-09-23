@@ -46,6 +46,13 @@ export default function Home() {
     } catch {}
   }, [gradientEnabled]);
 
+  // Persist controls toggle
+  useEffect(() => {
+    try {
+      localStorage.setItem("controlsEnabled", String(controlsEnabledForDialog));
+    } catch {}
+  }, [controlsEnabledForDialog]);
+
   // Persist progress bar toggle
   useEffect(() => {
     try {
@@ -168,6 +175,8 @@ export default function Home() {
             progressBarEnabled={progressBarEnabled}
             onChangeProgressBar={setProgressBarEnabled}
             transitionsEnabled={transitionsEnabled}
+            controlsEnabled={controlsEnabledForDialog}
+            onChangeControlsEnabled={setControlsEnabledForDialog}
           />
         )}
       </div>

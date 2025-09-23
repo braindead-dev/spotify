@@ -28,6 +28,8 @@ type Props = {
   onChangeProgressBar?: (enabled: boolean) => void;
   transitionsEnabled?: boolean;
   onChangeTransitions?: (enabled: boolean) => void;
+  controlsEnabled?: boolean;
+  onChangeControlsEnabled?: (enabled: boolean) => void;
 };
 
 export function NowPlayingCard({
@@ -41,10 +43,11 @@ export function NowPlayingCard({
   onChangeProgressBar = () => {},
   transitionsEnabled = true,
   onChangeTransitions = () => {},
+  controlsEnabled = false,
+  onChangeControlsEnabled = () => {},
 }: Props) {
   const [prevLoading, setPrevLoading] = useState(false);
   const [nextLoading, setNextLoading] = useState(false);
-  const [controlsEnabled, setControlsEnabled] = useState<boolean>(false);
   const [displayedTrack, setDisplayedTrack] = useState(data?.track ?? null);
   const [fading, setFading] = useState(false);
   const fadeTimerRef = useRef<number | null>(null);
@@ -54,18 +57,6 @@ export function NowPlayingCard({
   const LIGHTNESS_THRESHOLD = 0.75; // 0..1 range; treat backgrounds brighter than this as "light"
   // Safe album image URL for effects; do not rely on early returns
   const albumImageUrl = data?.track?.albumImageUrl ?? null;
-  useEffect(() => {
-    try {
-      const stored = localStorage.getItem("controlsEnabled");
-      if (stored !== null) setControlsEnabled(stored === "true");
-    } catch {}
-  }, []);
-
-  useEffect(() => {
-    try {
-      localStorage.setItem("controlsEnabled", String(controlsEnabled));
-    } catch {}
-  }, [controlsEnabled]);
 
   // Keep local play/pause state in sync with polled data
   useEffect(() => {
@@ -192,7 +183,7 @@ export function NowPlayingCard({
     <div className="relative text-center">
       <ControlsSettingsDialog
         controlsEnabled={controlsEnabled}
-        onChange={setControlsEnabled}
+        onChange={onChangeControlsEnabled}
         gradientEnabled={gradientEnabled}
         onChangeGradient={onChangeGradient}
         progressBarEnabled={progressBarEnabled}
