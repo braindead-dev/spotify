@@ -4,8 +4,9 @@ import Image from "next/image";
 import type { NowPlaying } from "@/types/spotify";
 import Link from "next/link";
 import { useEffect, useState } from "react";
-import { MdSkipNext, MdSkipPrevious } from "react-icons/md";
 import { ControlsSettingsDialog } from "@/components/spotify/ControlsSettingsDialog";
+import { PlaybackControls } from "@/components/spotify/toggleable/PlaybackControls";
+import { ProgressBar } from "@/components/spotify/toggleable/ProgressBar";
 import { useBackgroundLightness } from "@/hooks/useBackgroundLightness";
 import {
   getAlbumClasses,
@@ -122,49 +123,24 @@ export function NowPlayingCard({
             />
           </Link>
           {controlsEnabled && (
-            <>
-              <button
-                aria-label="Previous"
-                onClick={onPrev}
-                disabled={prevLoading}
-                className="drop-shadow-xs-dark absolute top-1/2 -left-12 -translate-y-1/2 cursor-pointer text-white disabled:opacity-50 sm:-left-24"
-              >
-                <MdSkipPrevious size={24} />
-              </button>
-              <button
-                aria-label="Next"
-                onClick={onNext}
-                disabled={nextLoading}
-                className="drop-shadow-xs-dark absolute top-1/2 -right-12 -translate-y-1/2 cursor-pointer text-white disabled:opacity-50 sm:-right-24"
-              >
-                <MdSkipNext size={24} />
-              </button>
-            </>
+            <PlaybackControls
+              onPrev={onPrev}
+              onNext={onNext}
+              prevLoading={prevLoading}
+              nextLoading={nextLoading}
+            />
           )}
         </div>
       ) : null}
 
       {/* Thin progress bar under the album art */}
-      {progressBarEnabled &&
-        data?.progressMs != null &&
-        data?.durationMs != null && (
-          <div className="mx-auto mb-3 w-56 sm:w-64">
-            <div
-              className={
-                `h-[2px] w-full rounded-full ` +
-                (isLightBg ? "bg-black/20" : "bg-white/30")
-              }
-            >
-              <div
-                className={`h-full rounded-full ${isLightBg ? "bg-black/70" : "bg-white/80"}`}
-                style={{
-                  width: `${Math.max(0, Math.min(100, (data.progressMs / Math.max(1, data.durationMs)) * 100))}%`,
-                  transition: "width 200ms linear",
-                }}
-              />
-            </div>
-          </div>
-        )}
+      {progressBarEnabled && (
+        <ProgressBar
+          progressMs={data?.progressMs}
+          durationMs={data?.durationMs}
+          isLightBg={isLightBg}
+        />
+      )}
 
       <p className={titleClasses}>
         {track.url ? (
