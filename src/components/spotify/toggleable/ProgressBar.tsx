@@ -21,10 +21,10 @@ export function ProgressBar({
     Math.min(100, (progressMs / Math.max(1, durationMs)) * 100),
   );
   return (
-    <div className={"mx-auto mb-3 w-56 sm:w-64 " + (className ?? "")}>
+    <div className={"mx-auto my-2 w-56 sm:w-64 " + (className ?? "")}>
       <div
         className={
-          "h-[2px] w-full rounded-full " +
+          "h-[3px] w-full rounded-full " +
           (isLightBg ? "bg-black/20" : "bg-white/30")
         }
       >

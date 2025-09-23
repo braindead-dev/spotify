@@ -106,7 +106,7 @@ export function NowPlayingCard({
         onChangeProgressBar={onChangeProgressBar}
       />
       {track.albumImageUrl ? (
-        <div className="relative mb-3 inline-block">
+        <div className="relative inline-block">
           <Link
             href={track.albumUrl || "#"}
             target="_blank"
@@ -148,7 +148,7 @@ export function NowPlayingCard({
             href={track.url}
             target="_blank"
             rel="noreferrer"
-            className="hover:underline"
+            className="mt-3 hover:underline"
           >
             {track.name}
           </Link>
