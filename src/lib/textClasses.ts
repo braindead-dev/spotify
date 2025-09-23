@@ -12,6 +12,6 @@ export function getArtistLinkClasses(isLightBg: boolean): string {
 
 export function getAlbumClasses(isLightBg: boolean): string {
   return isLightBg
-    ? "text-neutral-500"
+    ? "text-neutral-600"
     : "text-neutral-200 drop-shadow-xs-dark";
 }

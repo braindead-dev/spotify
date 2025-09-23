@@ -45,7 +45,7 @@ export function ControlsSettingsDialog({
               checked={controlsEnabled}
               onChange={(e) => onChange(e.target.checked)}
             />
-            Enable playback controls
+            Enable playback controls (premium)
           </label>
           <label className="flex items-center gap-2 text-sm">
             <input

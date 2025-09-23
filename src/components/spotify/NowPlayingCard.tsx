@@ -15,6 +15,7 @@ import {
   getArtistLinkClasses,
   getTitleClasses,
 } from "@/lib/textClasses";
+import { IoIosPause, IoIosPlay } from "react-icons/io";
 
 type Props = {
   data: NowPlaying | null;
@@ -161,6 +162,19 @@ export function NowPlayingCard({
   const artistLinkClasses = getArtistLinkClasses(isLightBg);
   const albumClasses = getAlbumClasses(isLightBg);
 
+  const onTogglePlayPause = async () => {
+    if (!controlsEnabled) return;
+    try {
+      const route = data?.isPlaying
+        ? "/api/spotify/pause"
+        : "/api/spotify/play";
+      await fetch(route, { method: "PUT" });
+      if (refresh) setTimeout(() => refresh(), 300);
+    } catch (err) {
+      console.error(err);
+    }
+  };
+
   return (
     <div className="relative text-center">
       <ControlsSettingsDialog
@@ -175,47 +189,57 @@ export function NowPlayingCard({
       />
       {track.albumImageUrl ? (
         <div className="relative inline-block">
-          <Link
-            href={track.albumUrl || "#"}
-            target="_blank"
-            rel="noreferrer"
-            className="hover:underline"
-          >
+          <div className="group relative mx-auto h-[200px] w-[200px]">
             {transitionsEnabled ? (
-              <div className="relative mx-auto h-[200px] w-[200px]">
-                <AnimatePresence mode="sync">
-                  <motion.div
-                    key={track.albumImageUrl}
-                    initial={{ opacity: 0 }}
-                    animate={{ opacity: 1 }}
-                    exit={{ opacity: 0 }}
-                    transition={{ duration: 0.35, ease: (t: number) => t }}
-                    className="absolute inset-0"
-                  >
-                    <Image
-                      src={track.albumImageUrl}
-                      alt={track.album}
-                      fill
-                      priority
-                      className={`rounded-lg ${isLightBg ? "" : "shadow-xl"}`}
-                      style={{ objectFit: "cover" }}
-                      unoptimized
-                    />
-                  </motion.div>
-                </AnimatePresence>
-              </div>
+              <AnimatePresence mode="sync">
+                <motion.div
+                  key={track.albumImageUrl}
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  exit={{ opacity: 0 }}
+                  transition={{ duration: 0.35, ease: (t: number) => t }}
+                  className="absolute inset-0"
+                >
+                  <Image
+                    src={track.albumImageUrl}
+                    alt={track.album}
+                    fill
+                    priority
+                    className={`rounded-lg ${isLightBg ? "" : "shadow-xl"}`}
+                    style={{ objectFit: "cover" }}
+                    unoptimized
+                  />
+                </motion.div>
+              </AnimatePresence>
             ) : (
-              <Image
-                src={track.albumImageUrl}
-                alt={track.album}
-                width={200}
-                height={200}
-                priority
-                className={`mx-auto block rounded-lg ${isLightBg ? "" : "shadow-xl"}`}
-                unoptimized
-              />
+              <>
+                <Image
+                  src={track.albumImageUrl}
+                  alt={track.album}
+                  fill
+                  priority
+                  className={`rounded-lg ${isLightBg ? "" : "shadow-xl"}`}
+                  style={{ objectFit: "cover" }}
+                  unoptimized
+                />
+              </>
             )}
-          </Link>
+            {controlsEnabled && (
+              <div className="absolute inset-0 z-10 flex items-center justify-center bg-neutral-800/40 opacity-0 transition-opacity duration-200 group-hover:opacity-100">
+                <button
+                  onClick={onTogglePlayPause}
+                  aria-label={data?.isPlaying ? "Pause" : "Play"}
+                  className="cursor-pointer"
+                >
+                  {data?.isPlaying ? (
+                    <IoIosPause size={32} color="white" />
+                  ) : (
+                    <IoIosPlay size={32} color="white" />
+                  )}
+                </button>
+              </div>
+            )}
+          </div>
           {controlsEnabled && (
             <PlaybackControls
               onPrev={onPrev}
