@@ -126,7 +126,7 @@ export default function Home() {
   ]);
 
   return (
-    <main className="relative flex min-h-screen items-center justify-center p-6">
+    <main className="relative flex h-[100dvh] w-full items-center justify-center overflow-hidden p-6">
       {gradientEnabled &&
         connected &&
         data?.isPlaying &&
