@@ -238,16 +238,18 @@ export function NowPlayingCard({
               </>
             )}
             {controlsEnabled && (
-              <div className="absolute inset-0 z-10 flex items-center justify-center rounded-lg bg-neutral-800/40 opacity-0 transition-opacity duration-200 group-hover:opacity-100">
+              <div
+                className={`absolute inset-0 z-10 flex items-center justify-center rounded-lg opacity-0 transition-opacity duration-200 group-hover:opacity-100 ${isLightBg ? "bg-neutral-50/40 text-black" : "drop-shadow-sm-dark bg-neutral-800/40 text-white"}`}
+              >
                 <button
                   onClick={onTogglePlayPause}
                   aria-label={isPlaying ? "Pause" : "Play"}
-                  className="cursor-pointer"
+                  className={`cursor-pointer ${isLightBg ? "drop-shadow-xs drop-shadow-white" : ""}`}
                 >
                   {isPlaying ? (
-                    <IoIosPause size={32} color="white" />
+                    <IoIosPause size={32} />
                   ) : (
-                    <IoIosPlay size={32} color="white" />
+                    <IoIosPlay size={32} />
                   )}
                 </button>
               </div>
