@@ -12,4 +12,6 @@ export type NowPlaying = {
   authenticated: boolean;
   isPlaying: boolean;
   track?: Track | null;
+  progressMs?: number;
+  durationMs?: number;
 };

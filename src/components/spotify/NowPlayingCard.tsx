@@ -18,6 +18,7 @@ type Props = {
   loading: boolean;
   gradientEnabled?: boolean;
   onChangeGradient?: (enabled: boolean) => void;
+  refresh?: () => void;
 };
 
 export function NowPlayingCard({
@@ -25,6 +26,7 @@ export function NowPlayingCard({
   loading,
   gradientEnabled = false,
   onChangeGradient = () => {},
+  refresh,
 }: Props) {
   const [prevLoading, setPrevLoading] = useState(false);
   const [nextLoading, setNextLoading] = useState(false);
@@ -49,6 +51,8 @@ export function NowPlayingCard({
     try {
       setPrevLoading(true);
       await fetch("/api/spotify/previous", { method: "POST" });
+      // Give Spotify a moment to switch, then refresh now playing
+      if (refresh) setTimeout(() => refresh(), 300);
     } catch (error) {
       console.error(error);
     } finally {
@@ -60,6 +64,8 @@ export function NowPlayingCard({
     try {
       setNextLoading(true);
       await fetch("/api/spotify/next", { method: "POST" });
+      // Give Spotify a moment to switch, then refresh now playing
+      if (refresh) setTimeout(() => refresh(), 300);
     } catch (error) {
       console.error(error);
     } finally {
@@ -115,7 +121,7 @@ export function NowPlayingCard({
                 aria-label="Previous"
                 onClick={onPrev}
                 disabled={prevLoading}
-                className="drop-shadow-xs-dark absolute top-1/2 -left-24 -translate-y-1/2 cursor-pointer text-white disabled:opacity-50"
+                className="drop-shadow-xs-dark absolute top-1/2 -left-12 -translate-y-1/2 cursor-pointer text-white disabled:opacity-50 sm:-left-24"
               >
                 <MdSkipPrevious size={24} />
               </button>
@@ -123,7 +129,7 @@ export function NowPlayingCard({
                 aria-label="Next"
                 onClick={onNext}
                 disabled={nextLoading}
-                className="drop-shadow-xs-dark absolute top-1/2 -right-24 -translate-y-1/2 cursor-pointer text-white disabled:opacity-50"
+                className="drop-shadow-xs-dark absolute top-1/2 -right-12 -translate-y-1/2 cursor-pointer text-white disabled:opacity-50 sm:-right-24"
               >
                 <MdSkipNext size={24} />
               </button>

@@ -110,6 +110,8 @@ export async function GET() {
 
   const data = await res.json();
   const item = data.item;
+  const progressMs = (data.progress_ms as number | undefined) ?? undefined;
+  const durationMs = (item?.duration_ms as number | undefined) ?? undefined;
 
   const nowPlaying = item
     ? {
@@ -133,5 +135,7 @@ export async function GET() {
     authenticated: true,
     isPlaying: !!item,
     track: nowPlaying,
+    progressMs,
+    durationMs,
   });
 }

@@ -8,7 +8,7 @@ import { extractDistinctPaletteFromImage } from "@/lib/colorExtract";
 import { ControlsSettingsDialog } from "@/components/spotify/ControlsSettingsDialog";
 
 export default function Home() {
-  const { data, loading, connected } = useNowPlaying(5000);
+  const { data, loading, connected, refresh } = useNowPlaying(5000);
   const [gradientEnabled, setGradientEnabled] = useState<boolean>(true);
   const [gradientColors, setGradientColors] = useState<string[] | null>(null);
   const [controlsEnabledForDialog, setControlsEnabledForDialog] =
@@ -117,6 +117,7 @@ export default function Home() {
             loading={loading}
             gradientEnabled={gradientEnabled}
             onChangeGradient={setGradientEnabled}
+            refresh={refresh}
           />
         )}
       </div>
