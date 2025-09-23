@@ -7,6 +7,7 @@ import { NowPlayingCard } from "@/components/spotify/NowPlayingCard";
 import { extractDistinctPaletteFromImage } from "@/lib/colorExtract";
 import { ControlsSettingsDialog } from "@/components/spotify/ControlsSettingsDialog";
 import { AnimatedGradient } from "@/components/spotify/toggleable/AnimatedGradient";
+import { useScreenWakeLock } from "@/hooks/useScreenWakeLock";
 
 export default function Home() {
   const { data, loading, connected, refresh } = useNowPlaying(5000);
@@ -16,6 +17,10 @@ export default function Home() {
     useState<boolean>(false);
   const [progressBarEnabled, setProgressBarEnabled] = useState<boolean>(true);
   const [transitionsEnabled, setTransitionsEnabled] = useState<boolean>(true);
+
+  // Keep the screen awake while music is actively playing.
+  // This uses the Screen Wake Lock API with robust fallbacks.
+  useScreenWakeLock(connected && !!data?.isPlaying);
 
   // Read persisted gradient toggle on mount
   useEffect(() => {
@@ -85,10 +90,9 @@ export default function Home() {
     };
   }, [gradientEnabled, connected, data?.track?.albumImageUrl]);
 
-  // Initialize full-page gradient when enabled, when colors exist, and when a song is playing
+  // Initialize full-page gradient when enabled and colors exist
   useEffect(() => {
-    if (!gradientEnabled || !connected || !data?.isPlaying || !gradientColors)
-      return;
+    if (!gradientEnabled || !connected || !gradientColors) return;
     // If transitions are enabled, AnimatedGradient handles initialization & crossfade
     if (transitionsEnabled) return;
     const init = async () => {
@@ -120,7 +124,6 @@ export default function Home() {
     gradientEnabled,
     connected,
     gradientColors,
-    data?.isPlaying,
     data?.track?.albumImageUrl,
     transitionsEnabled,
   ]);
@@ -129,7 +132,6 @@ export default function Home() {
     <main className="relative flex h-[100dvh] w-full items-center justify-center overflow-hidden p-6">
       {gradientEnabled &&
         connected &&
-        data?.isPlaying &&
         gradientColors &&
         (transitionsEnabled ? (
           <AnimatedGradient colors={gradientColors} durationMs={350} />

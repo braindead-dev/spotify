@@ -125,7 +125,7 @@ export function NowPlayingCard({
     return <p>...</p>;
   }
 
-  if (!data || !data.isPlaying || !displayedTrack) {
+  if (!data || !displayedTrack) {
     return <p>Not playing anything right now.</p>;
   }
 
@@ -205,6 +205,7 @@ export function NowPlayingCard({
           progressMs={data?.progressMs}
           durationMs={data?.durationMs}
           isLightBg={isLightBg}
+          isPlaying={!!data?.isPlaying}
         />
       )}
 

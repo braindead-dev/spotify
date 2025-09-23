@@ -134,7 +134,7 @@ export async function GET() {
 
   return NextResponse.json({
     authenticated: true,
-    isPlaying: !!item,
+    isPlaying: Boolean(data.is_playing),
     track: nowPlaying,
     progressMs,
     durationMs,
