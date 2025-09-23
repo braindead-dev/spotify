@@ -48,6 +48,9 @@ export function NowPlayingCard({
   const [displayedTrack, setDisplayedTrack] = useState(data?.track ?? null);
   const [fading, setFading] = useState(false);
   const fadeTimerRef = useRef<number | null>(null);
+  const [localIsPlaying, setLocalIsPlaying] = useState<boolean | null>(
+    data?.isPlaying ?? null,
+  );
   const LIGHTNESS_THRESHOLD = 0.75; // 0..1 range; treat backgrounds brighter than this as "light"
   // Safe album image URL for effects; do not rely on early returns
   const albumImageUrl = data?.track?.albumImageUrl ?? null;
@@ -63,6 +66,11 @@ export function NowPlayingCard({
       localStorage.setItem("controlsEnabled", String(controlsEnabled));
     } catch {}
   }, [controlsEnabled]);
+
+  // Keep local play/pause state in sync with polled data
+  useEffect(() => {
+    setLocalIsPlaying(data?.isPlaying ?? null);
+  }, [data?.isPlaying]);
 
   const onPrev = async () => {
     try {
@@ -161,15 +169,20 @@ export function NowPlayingCard({
   const titleClasses = getTitleClasses(isLightBg);
   const artistLinkClasses = getArtistLinkClasses(isLightBg);
   const albumClasses = getAlbumClasses(isLightBg);
+  const isPlaying = localIsPlaying != null ? localIsPlaying : !!data?.isPlaying;
 
   const onTogglePlayPause = async () => {
     if (!controlsEnabled) return;
     try {
-      const route = data?.isPlaying
-        ? "/api/spotify/pause"
-        : "/api/spotify/play";
+      // Optimistically flip local UI
+      setLocalIsPlaying(!isPlaying);
+      const route = isPlaying ? "/api/spotify/pause" : "/api/spotify/play";
       await fetch(route, { method: "PUT" });
-      if (refresh) setTimeout(() => refresh(), 300);
+      if (refresh) {
+        // Immediate repoll to update UI quickly, plus a delayed one for API propagation
+        refresh();
+        setTimeout(() => refresh(), 300);
+      }
     } catch (err) {
       console.error(err);
     }
@@ -228,10 +241,10 @@ export function NowPlayingCard({
               <div className="absolute inset-0 z-10 flex items-center justify-center bg-neutral-800/40 opacity-0 transition-opacity duration-200 group-hover:opacity-100">
                 <button
                   onClick={onTogglePlayPause}
-                  aria-label={data?.isPlaying ? "Pause" : "Play"}
+                  aria-label={isPlaying ? "Pause" : "Play"}
                   className="cursor-pointer"
                 >
-                  {data?.isPlaying ? (
+                  {isPlaying ? (
                     <IoIosPause size={32} color="white" />
                   ) : (
                     <IoIosPlay size={32} color="white" />
@@ -258,7 +271,7 @@ export function NowPlayingCard({
           progressMs={data?.progressMs}
           durationMs={data?.durationMs}
           isLightBg={isLightBg}
-          isPlaying={!!data?.isPlaying}
+          isPlaying={isPlaying}
         />
       )}
 
