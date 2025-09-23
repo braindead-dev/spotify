@@ -115,6 +115,7 @@ export async function GET() {
 
   const nowPlaying = item
     ? {
+        id: item.id as string | undefined,
         name: item.name as string,
         artists: (item.artists || [])
           .map((a: { name: string }) => a.name)

@@ -1,4 +1,5 @@
 export type Track = {
+  id?: string;
   name: string;
   artists: string; // currently comma-separated string. TODO: array for per-artist linking
   album: string;

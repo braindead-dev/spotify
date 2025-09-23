@@ -16,6 +16,8 @@ type Props = {
   onChangeGradient: (enabled: boolean) => void;
   progressBarEnabled: boolean;
   onChangeProgressBar: (enabled: boolean) => void;
+  transitionsEnabled: boolean;
+  onChangeTransitions: (enabled: boolean) => void;
 };
 
 export function ControlsSettingsDialog({
@@ -25,6 +27,8 @@ export function ControlsSettingsDialog({
   onChangeGradient,
   progressBarEnabled,
   onChangeProgressBar,
+  transitionsEnabled,
+  onChangeTransitions,
 }: Props) {
   return (
     <Dialog>
@@ -58,6 +62,14 @@ export function ControlsSettingsDialog({
               onChange={(e) => onChangeProgressBar(e.target.checked)}
             />
             Show progress bar
+          </label>
+          <label className="flex items-center gap-2 text-sm">
+            <input
+              type="checkbox"
+              checked={transitionsEnabled}
+              onChange={(e) => onChangeTransitions(e.target.checked)}
+            />
+            Animated transitions
           </label>
         </div>
         <div className="mt-1 flex justify-center gap-1 text-xs">

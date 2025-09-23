@@ -3,7 +3,7 @@
 import Image from "next/image";
 import type { NowPlaying } from "@/types/spotify";
 import Link from "next/link";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { ControlsSettingsDialog } from "@/components/spotify/ControlsSettingsDialog";
 import { PlaybackControls } from "@/components/spotify/toggleable/PlaybackControls";
 import { ProgressBar } from "@/components/spotify/toggleable/ProgressBar";
@@ -22,6 +22,8 @@ type Props = {
   refresh?: () => void;
   progressBarEnabled?: boolean;
   onChangeProgressBar?: (enabled: boolean) => void;
+  transitionsEnabled?: boolean;
+  onChangeTransitions?: (enabled: boolean) => void;
 };
 
 export function NowPlayingCard({
@@ -32,10 +34,15 @@ export function NowPlayingCard({
   refresh,
   progressBarEnabled = true,
   onChangeProgressBar = () => {},
+  transitionsEnabled = true,
+  onChangeTransitions = () => {},
 }: Props) {
   const [prevLoading, setPrevLoading] = useState(false);
   const [nextLoading, setNextLoading] = useState(false);
   const [controlsEnabled, setControlsEnabled] = useState<boolean>(false);
+  const [displayedTrack, setDisplayedTrack] = useState(data?.track ?? null);
+  const [fading, setFading] = useState(false);
+  const fadeTimerRef = useRef<number | null>(null);
   const LIGHTNESS_THRESHOLD = 0.75; // 0..1 range; treat backgrounds brighter than this as "light"
   // Safe album image URL for effects; do not rely on early returns
   const albumImageUrl = data?.track?.albumImageUrl ?? null;
@@ -77,6 +84,37 @@ export function NowPlayingCard({
       setNextLoading(false);
     }
   };
+  // Fade-out current text when track changes, then swap to next
+  useEffect(() => {
+    const newTrack = data?.track ?? null;
+    const currentId = displayedTrack?.id ?? displayedTrack?.name ?? null;
+    const incomingId = newTrack?.id ?? newTrack?.name ?? null;
+    if (!incomingId && !currentId) return; // nothing to show
+    if (incomingId === currentId) return; // same track
+
+    if (transitionsEnabled && displayedTrack) {
+      setFading(true);
+      if (fadeTimerRef.current) {
+        clearTimeout(fadeTimerRef.current);
+        fadeTimerRef.current = null;
+      }
+      fadeTimerRef.current = window.setTimeout(() => {
+        setDisplayedTrack(newTrack);
+        setFading(false);
+        fadeTimerRef.current = null;
+      }, 200);
+    } else {
+      setDisplayedTrack(newTrack);
+    }
+    // cleanup on unmount
+    return () => {
+      if (fadeTimerRef.current) {
+        clearTimeout(fadeTimerRef.current);
+        fadeTimerRef.current = null;
+      }
+    };
+  }, [data?.track, displayedTrack, transitionsEnabled]);
+
   const { isLightBg } = useBackgroundLightness(albumImageUrl, gradientEnabled, {
     threshold: LIGHTNESS_THRESHOLD,
   });
@@ -85,11 +123,11 @@ export function NowPlayingCard({
     return <p>...</p>;
   }
 
-  if (!data || !data.isPlaying || !data.track) {
+  if (!data || !data.isPlaying || !displayedTrack) {
     return <p>Not playing anything right now.</p>;
   }
 
-  const track = data.track;
+  const track = displayedTrack;
 
   const titleClasses = getTitleClasses(isLightBg);
   const artistLinkClasses = getArtistLinkClasses(isLightBg);
@@ -104,6 +142,8 @@ export function NowPlayingCard({
         onChangeGradient={onChangeGradient}
         progressBarEnabled={progressBarEnabled}
         onChangeProgressBar={onChangeProgressBar}
+        transitionsEnabled={transitionsEnabled}
+        onChangeTransitions={onChangeTransitions}
       />
       {track.albumImageUrl ? (
         <div className="relative inline-block">
@@ -118,7 +158,7 @@ export function NowPlayingCard({
               alt={track.album}
               width={200}
               height={200}
-              className="mx-auto block rounded-lg"
+              className={`mx-auto block rounded-lg ${isLightBg ? "" : "shadow-xl"}`}
               unoptimized
             />
           </Link>
@@ -142,50 +182,54 @@ export function NowPlayingCard({
         />
       )}
 
-      <p className={titleClasses}>
-        {track.url ? (
-          <Link
-            href={track.url}
-            target="_blank"
-            rel="noreferrer"
-            className="mt-3 hover:underline"
-          >
-            {track.name}
-          </Link>
-        ) : (
-          track.name
-        )}
-      </p>
+      <div
+        className={`transition-opacity duration-200 ${fading ? "opacity-0" : "opacity-100"}`}
+      >
+        <p className={titleClasses}>
+          {track.url ? (
+            <Link
+              href={track.url}
+              target="_blank"
+              rel="noreferrer"
+              className="mt-3 hover:underline"
+            >
+              {track.name}
+            </Link>
+          ) : (
+            track.name
+          )}
+        </p>
 
-      <p>
-        {track.artistUrl ? (
-          <Link
-            href={track.artistUrl}
-            target="_blank"
-            rel="noreferrer"
-            className={artistLinkClasses}
-          >
-            {track.artists}
-          </Link>
-        ) : (
-          track.artists
-        )}
-      </p>
+        <p>
+          {track.artistUrl ? (
+            <Link
+              href={track.artistUrl}
+              target="_blank"
+              rel="noreferrer"
+              className={artistLinkClasses}
+            >
+              {track.artists}
+            </Link>
+          ) : (
+            track.artists
+          )}
+        </p>
 
-      <p className={albumClasses}>
-        {track.albumUrl ? (
-          <Link
-            href={track.albumUrl}
-            target="_blank"
-            rel="noreferrer"
-            className="hover:underline"
-          >
-            {track.album}
-          </Link>
-        ) : (
-          track.album
-        )}
-      </p>
+        <p className={albumClasses}>
+          {track.albumUrl ? (
+            <Link
+              href={track.albumUrl}
+              target="_blank"
+              rel="noreferrer"
+              className="hover:underline"
+            >
+              {track.album}
+            </Link>
+          ) : (
+            track.album
+          )}
+        </p>
+      </div>
     </div>
   );
 }
