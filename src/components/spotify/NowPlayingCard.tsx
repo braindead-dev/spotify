@@ -238,7 +238,7 @@ export function NowPlayingCard({
               </>
             )}
             {controlsEnabled && (
-              <div className="absolute inset-0 z-10 flex items-center justify-center bg-neutral-800/40 opacity-0 transition-opacity duration-200 group-hover:opacity-100">
+              <div className="absolute inset-0 z-10 flex items-center justify-center rounded-lg bg-neutral-800/40 opacity-0 transition-opacity duration-200 group-hover:opacity-100">
                 <button
                   onClick={onTogglePlayPause}
                   aria-label={isPlaying ? "Pause" : "Play"}
