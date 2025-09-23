@@ -7,6 +7,7 @@ import { useEffect, useRef, useState } from "react";
 import { ControlsSettingsDialog } from "@/components/spotify/ControlsSettingsDialog";
 import { PlaybackControls } from "@/components/spotify/toggleable/PlaybackControls";
 import { ProgressBar } from "@/components/spotify/toggleable/ProgressBar";
+import { TextEffect } from "@/components/ui/text-effect";
 import { useBackgroundLightness } from "@/hooks/useBackgroundLightness";
 import {
   getAlbumClasses,
@@ -193,8 +194,30 @@ export function NowPlayingCard({
               rel="noreferrer"
               className="mt-3 hover:underline"
             >
-              {track.name}
+              {transitionsEnabled ? (
+                <TextEffect
+                  key={`title-${track.id ?? track.name}`}
+                  as="span"
+                  per="char"
+                  preset="fade"
+                  trigger={transitionsEnabled}
+                >
+                  {track.name}
+                </TextEffect>
+              ) : (
+                track.name
+              )}
             </Link>
+          ) : transitionsEnabled ? (
+            <TextEffect
+              key={`title-${track.id ?? track.name}`}
+              as="span"
+              per="char"
+              preset="fade"
+              trigger={transitionsEnabled}
+            >
+              {track.name}
+            </TextEffect>
           ) : (
             track.name
           )}
@@ -208,8 +231,30 @@ export function NowPlayingCard({
               rel="noreferrer"
               className={artistLinkClasses}
             >
-              {track.artists}
+              {transitionsEnabled ? (
+                <TextEffect
+                  key={`artists-${track.id ?? track.name}`}
+                  as="span"
+                  per="char"
+                  preset="fade"
+                  trigger={transitionsEnabled}
+                >
+                  {track.artists}
+                </TextEffect>
+              ) : (
+                track.artists
+              )}
             </Link>
+          ) : transitionsEnabled ? (
+            <TextEffect
+              key={`artists-${track.id ?? track.name}`}
+              as="span"
+              per="char"
+              preset="fade"
+              trigger={transitionsEnabled}
+            >
+              {track.artists}
+            </TextEffect>
           ) : (
             track.artists
           )}
@@ -223,8 +268,30 @@ export function NowPlayingCard({
               rel="noreferrer"
               className="hover:underline"
             >
-              {track.album}
+              {transitionsEnabled ? (
+                <TextEffect
+                  key={`album-${track.id ?? track.name}`}
+                  as="span"
+                  per="char"
+                  preset="fade"
+                  trigger={transitionsEnabled}
+                >
+                  {track.album}
+                </TextEffect>
+              ) : (
+                track.album
+              )}
             </Link>
+          ) : transitionsEnabled ? (
+            <TextEffect
+              key={`album-${track.id ?? track.name}`}
+              as="span"
+              per="char"
+              preset="fade"
+              trigger={transitionsEnabled}
+            >
+              {track.album}
+            </TextEffect>
           ) : (
             track.album
           )}
