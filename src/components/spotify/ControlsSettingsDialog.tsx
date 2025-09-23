@@ -48,6 +48,14 @@ export function ControlsSettingsDialog({
             Enable animated gradient background
           </label>
         </div>
+        <div className="mt-1 flex justify-center gap-1 text-xs">
+          <Link
+            href="/api/spotify/logout"
+            className="text-blue-900 hover:underline"
+          >
+            Log out of Spotify
+          </Link>
+        </div>
         <div className="flex justify-center gap-1 text-xs">
           <span>made with ❤️ by </span>
           <Link
