@@ -14,6 +14,8 @@ type Props = {
   onChange: (enabled: boolean) => void;
   gradientEnabled: boolean;
   onChangeGradient: (enabled: boolean) => void;
+  progressBarEnabled: boolean;
+  onChangeProgressBar: (enabled: boolean) => void;
 };
 
 export function ControlsSettingsDialog({
@@ -21,6 +23,8 @@ export function ControlsSettingsDialog({
   onChange,
   gradientEnabled,
   onChangeGradient,
+  progressBarEnabled,
+  onChangeProgressBar,
 }: Props) {
   return (
     <Dialog>
@@ -46,6 +50,14 @@ export function ControlsSettingsDialog({
               onChange={(e) => onChangeGradient(e.target.checked)}
             />
             Enable animated gradient background
+          </label>
+          <label className="flex items-center gap-2 text-sm">
+            <input
+              type="checkbox"
+              checked={progressBarEnabled}
+              onChange={(e) => onChangeProgressBar(e.target.checked)}
+            />
+            Show progress bar
           </label>
         </div>
         <div className="mt-1 flex justify-center gap-1 text-xs">

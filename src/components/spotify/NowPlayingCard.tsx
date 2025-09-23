@@ -19,6 +19,8 @@ type Props = {
   gradientEnabled?: boolean;
   onChangeGradient?: (enabled: boolean) => void;
   refresh?: () => void;
+  progressBarEnabled?: boolean;
+  onChangeProgressBar?: (enabled: boolean) => void;
 };
 
 export function NowPlayingCard({
@@ -27,6 +29,8 @@ export function NowPlayingCard({
   gradientEnabled = false,
   onChangeGradient = () => {},
   refresh,
+  progressBarEnabled = true,
+  onChangeProgressBar = () => {},
 }: Props) {
   const [prevLoading, setPrevLoading] = useState(false);
   const [nextLoading, setNextLoading] = useState(false);
@@ -97,6 +101,8 @@ export function NowPlayingCard({
         onChange={setControlsEnabled}
         gradientEnabled={gradientEnabled}
         onChangeGradient={onChangeGradient}
+        progressBarEnabled={progressBarEnabled}
+        onChangeProgressBar={onChangeProgressBar}
       />
       {track.albumImageUrl ? (
         <div className="relative mb-3 inline-block">
@@ -137,6 +143,28 @@ export function NowPlayingCard({
           )}
         </div>
       ) : null}
+
+      {/* Thin progress bar under the album art */}
+      {progressBarEnabled &&
+        data?.progressMs != null &&
+        data?.durationMs != null && (
+          <div className="mx-auto mb-3 w-56 sm:w-64">
+            <div
+              className={
+                `h-[2px] w-full rounded-full ` +
+                (isLightBg ? "bg-black/20" : "bg-white/30")
+              }
+            >
+              <div
+                className={`h-full rounded-full ${isLightBg ? "bg-black/70" : "bg-white/80"}`}
+                style={{
+                  width: `${Math.max(0, Math.min(100, (data.progressMs / Math.max(1, data.durationMs)) * 100))}%`,
+                  transition: "width 200ms linear",
+                }}
+              />
+            </div>
+          </div>
+        )}
 
       <p className={titleClasses}>
         {track.url ? (

@@ -13,6 +13,7 @@ export default function Home() {
   const [gradientColors, setGradientColors] = useState<string[] | null>(null);
   const [controlsEnabledForDialog, setControlsEnabledForDialog] =
     useState<boolean>(false);
+  const [progressBarEnabled, setProgressBarEnabled] = useState<boolean>(true);
 
   // Read persisted gradient toggle on mount
   useEffect(() => {
@@ -22,6 +23,9 @@ export default function Home() {
       const storedControls = localStorage.getItem("controlsEnabled");
       if (storedControls !== null)
         setControlsEnabledForDialog(storedControls === "true");
+      const storedProgress = localStorage.getItem("progressBarEnabled");
+      if (storedProgress !== null)
+        setProgressBarEnabled(storedProgress === "true");
     } catch {}
   }, []);
 
@@ -31,6 +35,13 @@ export default function Home() {
       localStorage.setItem("gradientEnabled", String(gradientEnabled));
     } catch {}
   }, [gradientEnabled]);
+
+  // Persist progress bar toggle
+  useEffect(() => {
+    try {
+      localStorage.setItem("progressBarEnabled", String(progressBarEnabled));
+    } catch {}
+  }, [progressBarEnabled]);
 
   // Compute colors from the current album cover when enabled/changed
   useEffect(() => {
@@ -118,6 +129,8 @@ export default function Home() {
             gradientEnabled={gradientEnabled}
             onChangeGradient={setGradientEnabled}
             refresh={refresh}
+            progressBarEnabled={progressBarEnabled}
+            onChangeProgressBar={setProgressBarEnabled}
           />
         )}
       </div>
@@ -128,6 +141,8 @@ export default function Home() {
           onChange={setControlsEnabledForDialog}
           gradientEnabled={gradientEnabled}
           onChangeGradient={setGradientEnabled}
+          progressBarEnabled={progressBarEnabled}
+          onChangeProgressBar={setProgressBarEnabled}
         />
       )}
     </main>
