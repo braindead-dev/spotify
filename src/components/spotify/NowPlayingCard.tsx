@@ -8,6 +8,7 @@ import { ControlsSettingsDialog } from "@/components/spotify/ControlsSettingsDia
 import { PlaybackControls } from "@/components/spotify/toggleable/PlaybackControls";
 import { ProgressBar } from "@/components/spotify/toggleable/ProgressBar";
 import { TextEffect } from "@/components/ui/text-effect";
+import { AnimatePresence, motion } from "motion/react";
 import { useBackgroundLightness } from "@/hooks/useBackgroundLightness";
 import {
   getAlbumClasses,
@@ -154,14 +155,38 @@ export function NowPlayingCard({
             rel="noreferrer"
             className="hover:underline"
           >
-            <Image
-              src={track.albumImageUrl}
-              alt={track.album}
-              width={200}
-              height={200}
-              className={`mx-auto block rounded-lg ${isLightBg ? "" : "shadow-xl"}`}
-              unoptimized
-            />
+            {transitionsEnabled ? (
+              <div className="relative mx-auto h-[200px] w-[200px]">
+                <AnimatePresence mode="sync">
+                  <motion.div
+                    key={track.albumImageUrl}
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    exit={{ opacity: 0 }}
+                    transition={{ duration: 0.35, ease: (t: number) => t }}
+                    className="absolute inset-0"
+                  >
+                    <Image
+                      src={track.albumImageUrl}
+                      alt={track.album}
+                      fill
+                      className={`rounded-lg ${isLightBg ? "" : "shadow-xl"}`}
+                      style={{ objectFit: "cover" }}
+                      unoptimized
+                    />
+                  </motion.div>
+                </AnimatePresence>
+              </div>
+            ) : (
+              <Image
+                src={track.albumImageUrl}
+                alt={track.album}
+                width={200}
+                height={200}
+                className={`mx-auto block rounded-lg ${isLightBg ? "" : "shadow-xl"}`}
+                unoptimized
+              />
+            )}
           </Link>
           {controlsEnabled && (
             <PlaybackControls
