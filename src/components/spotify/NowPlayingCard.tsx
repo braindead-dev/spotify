@@ -1,22 +1,19 @@
 "use client";
 
-import Image from "next/image";
 import type { NowPlaying } from "@/types/spotify";
 import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
 import { ControlsSettingsDialog } from "@/components/spotify/ControlsSettingsDialog";
-import { PlaybackControls } from "@/components/spotify/toggleable/PlaybackControls";
-import { ProgressBar } from "@/components/spotify/toggleable/ProgressBar";
 import { TextEffect } from "@/components/ui/text-effect";
-import { AnimatePresence, motion } from "motion/react";
 import { useBackgroundLightness } from "@/hooks/useBackgroundLightness";
 import {
   getAlbumClasses,
   getArtistLinkClasses,
   getTitleClasses,
 } from "@/lib/textClasses";
-import { IoIosPause, IoIosPlay } from "react-icons/io";
-import { TbArrowsShuffle, TbRepeat, TbRepeatOnce } from "react-icons/tb";
+import { usePlaybackControls } from "@/hooks/usePlaybackControls";
+import { ProgressWithAdvancedControls } from "@/components/spotify/ProgressWithAdvancedControls";
+import { AlbumArt } from "@/components/spotify/AlbumArt";
 
 type Props = {
   data: NowPlaying | null;
@@ -56,32 +53,26 @@ export function NowPlayingCard({
   const [displayedTrack, setDisplayedTrack] = useState(data?.track ?? null);
   const [fading, setFading] = useState(false);
   const fadeTimerRef = useRef<number | null>(null);
-  const [localIsPlaying, setLocalIsPlaying] = useState<boolean | null>(
-    data?.isPlaying ?? null,
-  );
-  const [localShuffleState, setLocalShuffleState] = useState<boolean | null>(
-    data?.shuffleState ?? null,
-  );
-  const [localRepeatState, setLocalRepeatState] = useState<
-    "off" | "context" | "track" | null
-  >(data?.repeatState ?? null);
+  // Playback controls & optimistic UI are managed by a dedicated hook
+  const {
+    isPlaying,
+    shuffleOn,
+    repeatOn,
+    repeatOneOn,
+    onTogglePlayPause,
+    onToggleShuffle,
+    onCycleRepeat,
+  } = usePlaybackControls({
+    data,
+    controlsEnabled,
+    advancedPlaybackEnabled,
+    refresh,
+  });
   const LIGHTNESS_THRESHOLD = 0.75; // 0..1 range; treat backgrounds brighter than this as "light"
   // Safe album image URL for effects; do not rely on early returns
   const albumImageUrl = data?.track?.albumImageUrl ?? null;
 
-  // Keep local play/pause state in sync with polled data
-  useEffect(() => {
-    setLocalIsPlaying(data?.isPlaying ?? null);
-  }, [data?.isPlaying]);
-
-  // Keep local shuffle/repeat state in sync with polled data
-  useEffect(() => {
-    setLocalShuffleState(data?.shuffleState ?? null);
-  }, [data?.shuffleState]);
-
-  useEffect(() => {
-    setLocalRepeatState(data?.repeatState ?? null);
-  }, [data?.repeatState]);
+  // Hook above keeps local state in sync
 
   const onPrev = async () => {
     try {
@@ -93,47 +84,6 @@ export function NowPlayingCard({
       console.error(error);
     } finally {
       setPrevLoading(false);
-    }
-  };
-
-  const onToggleShuffle = async () => {
-    if (!controlsEnabled || !advancedPlaybackEnabled) return;
-    try {
-      // Optimistically update UI
-      setLocalShuffleState(!shuffleOn);
-      await fetch("/api/spotify/shuffle", {
-        method: "PUT",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ state: !shuffleOn }),
-      });
-      if (refresh) {
-        refresh();
-        setTimeout(() => refresh(), 300);
-      }
-    } catch (e) {
-      console.error(e);
-    }
-  };
-
-  const onCycleRepeat = async () => {
-    if (!controlsEnabled || !advancedPlaybackEnabled) return;
-    try {
-      const current: "off" | "context" | "track" = repeatState ?? "off";
-      const next: "off" | "context" | "track" =
-        current === "off" ? "context" : current === "context" ? "track" : "off";
-      // Optimistically update UI
-      setLocalRepeatState(next);
-      await fetch("/api/spotify/repeat", {
-        method: "PUT",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ state: next }),
-      });
-      if (refresh) {
-        refresh();
-        setTimeout(() => refresh(), 300);
-      }
-    } catch (e) {
-      console.error(e);
     }
   };
 
@@ -221,29 +171,7 @@ export function NowPlayingCard({
   const titleClasses = getTitleClasses(isLightBg);
   const artistLinkClasses = getArtistLinkClasses(isLightBg);
   const albumClasses = getAlbumClasses(isLightBg);
-  const isPlaying = localIsPlaying != null ? localIsPlaying : !!data?.isPlaying;
-  const shuffleOn =
-    localShuffleState != null ? localShuffleState : !!data?.shuffleState;
-  const repeatState = localRepeatState ?? data?.repeatState;
-  const repeatOneOn = repeatState === "track";
-  const repeatOn = repeatState === "context" || repeatOneOn;
-
-  const onTogglePlayPause = async () => {
-    if (!controlsEnabled) return;
-    try {
-      // Optimistically flip local UI
-      setLocalIsPlaying(!isPlaying);
-      const route = isPlaying ? "/api/spotify/pause" : "/api/spotify/play";
-      await fetch(route, { method: "PUT" });
-      if (refresh) {
-        // Immediate repoll to update UI quickly, plus a delayed one for API propagation
-        refresh();
-        setTimeout(() => refresh(), 300);
-      }
-    } catch (err) {
-      console.error(err);
-    }
-  };
+  // isPlaying and handlers come from hook
 
   return (
     <div className="relative text-center">
@@ -260,128 +188,36 @@ export function NowPlayingCard({
         onChangeAdvancedPlaybackEnabled={onChangeAdvancedPlaybackEnabled}
       />
       {track.albumImageUrl ? (
-        <div className="relative inline-block">
-          <div className="group relative mx-auto h-[200px] w-[200px]">
-            {transitionsEnabled ? (
-              <AnimatePresence mode="sync">
-                <motion.div
-                  key={track.albumImageUrl}
-                  initial={{ opacity: 0 }}
-                  animate={{ opacity: 1 }}
-                  exit={{ opacity: 0 }}
-                  transition={{ duration: 0.35, ease: (t: number) => t }}
-                  className="absolute inset-0"
-                >
-                  <Image
-                    src={track.albumImageUrl}
-                    alt={track.album}
-                    fill
-                    priority
-                    className={`rounded-lg ${isLightBg ? "" : "shadow-xl"}`}
-                    style={{ objectFit: "cover" }}
-                    unoptimized
-                  />
-                </motion.div>
-              </AnimatePresence>
-            ) : (
-              <>
-                <Image
-                  src={track.albumImageUrl}
-                  alt={track.album}
-                  fill
-                  priority
-                  className={`rounded-lg ${isLightBg ? "" : "shadow-xl"}`}
-                  style={{ objectFit: "cover" }}
-                  unoptimized
-                />
-              </>
-            )}
-            {controlsEnabled && (
-              <div
-                className={`absolute inset-0 z-10 flex items-center justify-center rounded-lg opacity-0 transition-opacity duration-200 group-hover:opacity-100 ${isLightBg ? "bg-neutral-50/40 text-black" : "drop-shadow-sm-dark bg-neutral-800/40 text-white"}`}
-              >
-                <button
-                  onClick={onTogglePlayPause}
-                  aria-label={isPlaying ? "Pause" : "Play"}
-                  className={`cursor-pointer ${isLightBg ? "drop-shadow-xs drop-shadow-white" : ""}`}
-                >
-                  {isPlaying ? (
-                    <IoIosPause size={32} />
-                  ) : (
-                    <IoIosPlay size={32} />
-                  )}
-                </button>
-              </div>
-            )}
-          </div>
-          {controlsEnabled && (
-            <PlaybackControls
-              onPrev={onPrev}
-              onNext={onNext}
-              prevLoading={prevLoading}
-              nextLoading={nextLoading}
-              isLightBg={isLightBg}
-            />
-          )}
-        </div>
+        <AlbumArt
+          imageUrl={track.albumImageUrl}
+          albumAlt={track.album}
+          isLightBg={isLightBg}
+          transitionsEnabled={transitionsEnabled}
+          controlsEnabled={controlsEnabled}
+          isPlaying={isPlaying}
+          onTogglePlayPause={onTogglePlayPause}
+          showTransportControls={controlsEnabled}
+          onPrev={onPrev}
+          onNext={onNext}
+          prevLoading={prevLoading}
+          nextLoading={nextLoading}
+        />
       ) : null}
 
       {/* Thin progress bar under the album art */}
       {progressBarEnabled && (
-        <div className="relative mx-auto w-56 sm:w-64">
-          {/* Shuffle on the left when advanced controls are enabled */}
-          {advancedPlaybackEnabled && (
-            <button
-              aria-label="Shuffle"
-              className={`absolute top-1/2 -left-8 -translate-y-1/2 cursor-pointer ${
-                isLightBg ? "text-black" : "drop-shadow-sm-dark text-white"
-              }`}
-              onClick={onToggleShuffle}
-            >
-              <span className="relative inline-flex translate-y-0.5 items-center">
-                <TbArrowsShuffle size={16} />
-                {shuffleOn && (
-                  <span
-                    className={`absolute top-full left-1/2 mt-0.5 size-1 -translate-x-1/2 rounded-full ${
-                      isLightBg ? "bg-black/80" : "bg-white/90"
-                    }`}
-                  />
-                )}
-              </span>
-            </button>
-          )}
-          <ProgressBar
-            progressMs={data?.progressMs}
-            durationMs={data?.durationMs}
-            isLightBg={isLightBg}
-            isPlaying={isPlaying}
-          />
-          {/* Repeat on the right when advanced controls are enabled */}
-          {advancedPlaybackEnabled && (
-            <button
-              aria-label="Repeat"
-              className={`absolute top-1/2 -right-8 -translate-y-1/2 cursor-pointer ${
-                isLightBg ? "text-black" : "drop-shadow-sm-dark text-white"
-              }`}
-              onClick={onCycleRepeat}
-            >
-              <span className="relative inline-flex translate-y-0.5 items-center">
-                {repeatOneOn ? (
-                  <TbRepeatOnce size={16} />
-                ) : (
-                  <TbRepeat size={16} />
-                )}
-                {repeatOn && (
-                  <span
-                    className={`absolute top-full left-1/2 mt-0.5 size-1 -translate-x-1/2 rounded-full ${
-                      isLightBg ? "bg-black/80" : "bg-white/90"
-                    }`}
-                  />
-                )}
-              </span>
-            </button>
-          )}
-        </div>
+        <ProgressWithAdvancedControls
+          progressMs={data?.progressMs}
+          durationMs={data?.durationMs}
+          isLightBg={isLightBg}
+          isPlaying={isPlaying}
+          advancedPlaybackEnabled={advancedPlaybackEnabled}
+          shuffleOn={!!shuffleOn}
+          repeatOn={!!repeatOn}
+          repeatOneOn={!!repeatOneOn}
+          onToggleShuffle={onToggleShuffle}
+          onCycleRepeat={onCycleRepeat}
+        />
       )}
 
       <div
