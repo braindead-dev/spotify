@@ -15,4 +15,6 @@ export type NowPlaying = {
   track?: Track | null;
   progressMs?: number;
   durationMs?: number;
+  shuffleState?: boolean; // true if shuffle is on
+  repeatState?: "off" | "context" | "track"; // Spotify repeat modes
 };

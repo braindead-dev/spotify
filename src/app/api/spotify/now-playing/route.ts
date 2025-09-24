@@ -109,6 +109,31 @@ export async function GET() {
   }
 
   const data = await res.json();
+
+  // Fetch overall player state to obtain shuffle and repeat modes
+  let shuffleState: boolean | undefined = undefined;
+  let repeatState: "off" | "context" | "track" | undefined = undefined;
+  try {
+    const stateRes = await fetch("https://api.spotify.com/v1/me/player", {
+      headers: { Authorization: `Bearer ${accessToken}` },
+    });
+    if (stateRes.ok) {
+      const stateJson = (await stateRes.json()) as {
+        shuffle_state?: boolean;
+        repeat_state?: "off" | "context" | "track";
+      };
+      if (typeof stateJson.shuffle_state === "boolean") {
+        shuffleState = stateJson.shuffle_state;
+      }
+      if (
+        stateJson.repeat_state === "off" ||
+        stateJson.repeat_state === "context" ||
+        stateJson.repeat_state === "track"
+      ) {
+        repeatState = stateJson.repeat_state;
+      }
+    }
+  } catch {}
   const item = data.item;
   const progressMs = (data.progress_ms as number | undefined) ?? undefined;
   const durationMs = (item?.duration_ms as number | undefined) ?? undefined;
@@ -138,5 +163,7 @@ export async function GET() {
     track: nowPlaying,
     progressMs,
     durationMs,
+    shuffleState,
+    repeatState,
   });
 }

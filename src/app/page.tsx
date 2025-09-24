@@ -17,6 +17,8 @@ export default function Home() {
     useState<boolean>(false);
   const [progressBarEnabled, setProgressBarEnabled] = useState<boolean>(true);
   const [transitionsEnabled, setTransitionsEnabled] = useState<boolean>(true);
+  const [advancedPlaybackEnabled, setAdvancedPlaybackEnabled] =
+    useState<boolean>(false);
 
   // Keep the screen awake while music is actively playing.
   // This uses the Screen Wake Lock API with robust fallbacks.
@@ -36,6 +38,9 @@ export default function Home() {
       const storedTransitions = localStorage.getItem("transitionsEnabled");
       if (storedTransitions !== null)
         setTransitionsEnabled(storedTransitions === "true");
+      const storedAdvanced = localStorage.getItem("advancedPlaybackEnabled");
+      if (storedAdvanced !== null)
+        setAdvancedPlaybackEnabled(storedAdvanced === "true");
     } catch {}
   }, []);
 
@@ -66,6 +71,16 @@ export default function Home() {
       localStorage.setItem("transitionsEnabled", String(transitionsEnabled));
     } catch {}
   }, [transitionsEnabled]);
+
+  // Persist advanced playback controls toggle
+  useEffect(() => {
+    try {
+      localStorage.setItem(
+        "advancedPlaybackEnabled",
+        String(advancedPlaybackEnabled),
+      );
+    } catch {}
+  }, [advancedPlaybackEnabled]);
 
   // Compute colors from the current album cover when enabled/changed
   useEffect(() => {
@@ -177,6 +192,8 @@ export default function Home() {
             transitionsEnabled={transitionsEnabled}
             controlsEnabled={controlsEnabledForDialog}
             onChangeControlsEnabled={setControlsEnabledForDialog}
+            advancedPlaybackEnabled={advancedPlaybackEnabled}
+            onChangeAdvancedPlaybackEnabled={setAdvancedPlaybackEnabled}
           />
         )}
       </div>
@@ -191,6 +208,8 @@ export default function Home() {
           onChangeProgressBar={setProgressBarEnabled}
           transitionsEnabled={transitionsEnabled}
           onChangeTransitions={setTransitionsEnabled}
+          advancedPlaybackEnabled={advancedPlaybackEnabled}
+          onChangeAdvancedPlaybackEnabled={setAdvancedPlaybackEnabled}
         />
       )}
     </main>

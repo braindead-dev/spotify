@@ -18,6 +18,8 @@ type Props = {
   onChangeProgressBar: (enabled: boolean) => void;
   transitionsEnabled: boolean;
   onChangeTransitions: (enabled: boolean) => void;
+  advancedPlaybackEnabled?: boolean;
+  onChangeAdvancedPlaybackEnabled?: (enabled: boolean) => void;
 };
 
 export function ControlsSettingsDialog({
@@ -29,6 +31,8 @@ export function ControlsSettingsDialog({
   onChangeProgressBar,
   transitionsEnabled,
   onChangeTransitions,
+  advancedPlaybackEnabled = false,
+  onChangeAdvancedPlaybackEnabled = () => {},
 }: Props) {
   return (
     <Dialog>
@@ -47,6 +51,18 @@ export function ControlsSettingsDialog({
             />
             Enable playback controls (premium)
           </label>
+          {controlsEnabled && progressBarEnabled ? (
+            <label className="flex items-center gap-2 text-sm">
+              <input
+                type="checkbox"
+                checked={advancedPlaybackEnabled}
+                onChange={(e) =>
+                  onChangeAdvancedPlaybackEnabled(e.target.checked)
+                }
+              />
+              Advanced playback controls
+            </label>
+          ) : null}
           <label className="flex items-center gap-2 text-sm">
             <input
               type="checkbox"

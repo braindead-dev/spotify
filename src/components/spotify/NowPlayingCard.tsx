@@ -16,6 +16,7 @@ import {
   getTitleClasses,
 } from "@/lib/textClasses";
 import { IoIosPause, IoIosPlay } from "react-icons/io";
+import { TbArrowsShuffle, TbRepeat, TbRepeatOnce } from "react-icons/tb";
 
 type Props = {
   data: NowPlaying | null;
@@ -30,6 +31,8 @@ type Props = {
   onChangeTransitions?: (enabled: boolean) => void;
   controlsEnabled?: boolean;
   onChangeControlsEnabled?: (enabled: boolean) => void;
+  advancedPlaybackEnabled?: boolean;
+  onChangeAdvancedPlaybackEnabled?: (enabled: boolean) => void;
 };
 
 export function NowPlayingCard({
@@ -45,6 +48,8 @@ export function NowPlayingCard({
   onChangeTransitions = () => {},
   controlsEnabled = false,
   onChangeControlsEnabled = () => {},
+  advancedPlaybackEnabled = false,
+  onChangeAdvancedPlaybackEnabled = () => {},
 }: Props) {
   const [prevLoading, setPrevLoading] = useState(false);
   const [nextLoading, setNextLoading] = useState(false);
@@ -161,6 +166,10 @@ export function NowPlayingCard({
   const artistLinkClasses = getArtistLinkClasses(isLightBg);
   const albumClasses = getAlbumClasses(isLightBg);
   const isPlaying = localIsPlaying != null ? localIsPlaying : !!data?.isPlaying;
+  const shuffleOn = !!data?.shuffleState;
+  const repeatState = data?.repeatState;
+  const repeatOneOn = repeatState === "track";
+  const repeatOn = repeatState === "context" || repeatOneOn;
 
   const onTogglePlayPause = async () => {
     if (!controlsEnabled) return;
@@ -190,6 +199,8 @@ export function NowPlayingCard({
         onChangeProgressBar={onChangeProgressBar}
         transitionsEnabled={transitionsEnabled}
         onChangeTransitions={onChangeTransitions}
+        advancedPlaybackEnabled={advancedPlaybackEnabled}
+        onChangeAdvancedPlaybackEnabled={onChangeAdvancedPlaybackEnabled}
       />
       {track.albumImageUrl ? (
         <div className="relative inline-block">
@@ -260,12 +271,62 @@ export function NowPlayingCard({
 
       {/* Thin progress bar under the album art */}
       {progressBarEnabled && (
-        <ProgressBar
-          progressMs={data?.progressMs}
-          durationMs={data?.durationMs}
-          isLightBg={isLightBg}
-          isPlaying={isPlaying}
-        />
+        <div className="relative mx-auto w-56 sm:w-64">
+          {/* Shuffle on the left when advanced controls are enabled */}
+          {advancedPlaybackEnabled && (
+            <button
+              aria-label="Shuffle"
+              className={`absolute top-1/2 -left-8 -translate-y-1/2 cursor-pointer ${
+                isLightBg ? "text-black" : "drop-shadow-sm-dark text-white"
+              }`}
+              // No-op for now
+              onClick={() => {}}
+            >
+              <span className="relative inline-flex translate-y-0.5 items-center">
+                <TbArrowsShuffle size={16} />
+                {shuffleOn && (
+                  <span
+                    className={`absolute top-full left-1/2 mt-0.5 size-1 -translate-x-1/2 rounded-full ${
+                      isLightBg ? "bg-black/80" : "bg-white/90"
+                    }`}
+                  />
+                )}
+              </span>
+            </button>
+          )}
+          <ProgressBar
+            progressMs={data?.progressMs}
+            durationMs={data?.durationMs}
+            isLightBg={isLightBg}
+            isPlaying={isPlaying}
+          />
+          {/* Repeat on the right when advanced controls are enabled */}
+          {advancedPlaybackEnabled && (
+            <button
+              aria-label="Repeat"
+              className={`absolute top-1/2 -right-8 -translate-y-1/2 cursor-pointer ${
+                isLightBg ? "text-black" : "drop-shadow-sm-dark text-white"
+              }`}
+              // No-op for now
+              onClick={() => {}}
+            >
+              <span className="relative inline-flex translate-y-0.5 items-center">
+                {repeatOneOn ? (
+                  <TbRepeatOnce size={16} />
+                ) : (
+                  <TbRepeat size={16} />
+                )}
+                {repeatOn && (
+                  <span
+                    className={`absolute top-full left-1/2 mt-0.5 size-1 -translate-x-1/2 rounded-full ${
+                      isLightBg ? "bg-black/80" : "bg-white/90"
+                    }`}
+                  />
+                )}
+              </span>
+            </button>
+          )}
+        </div>
       )}
 
       <div
