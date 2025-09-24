@@ -59,6 +59,12 @@ export function NowPlayingCard({
   const [localIsPlaying, setLocalIsPlaying] = useState<boolean | null>(
     data?.isPlaying ?? null,
   );
+  const [localShuffleState, setLocalShuffleState] = useState<boolean | null>(
+    data?.shuffleState ?? null,
+  );
+  const [localRepeatState, setLocalRepeatState] = useState<
+    "off" | "context" | "track" | null
+  >(data?.repeatState ?? null);
   const LIGHTNESS_THRESHOLD = 0.75; // 0..1 range; treat backgrounds brighter than this as "light"
   // Safe album image URL for effects; do not rely on early returns
   const albumImageUrl = data?.track?.albumImageUrl ?? null;
@@ -67,6 +73,15 @@ export function NowPlayingCard({
   useEffect(() => {
     setLocalIsPlaying(data?.isPlaying ?? null);
   }, [data?.isPlaying]);
+
+  // Keep local shuffle/repeat state in sync with polled data
+  useEffect(() => {
+    setLocalShuffleState(data?.shuffleState ?? null);
+  }, [data?.shuffleState]);
+
+  useEffect(() => {
+    setLocalRepeatState(data?.repeatState ?? null);
+  }, [data?.repeatState]);
 
   const onPrev = async () => {
     try {
@@ -78,6 +93,47 @@ export function NowPlayingCard({
       console.error(error);
     } finally {
       setPrevLoading(false);
+    }
+  };
+
+  const onToggleShuffle = async () => {
+    if (!controlsEnabled || !advancedPlaybackEnabled) return;
+    try {
+      // Optimistically update UI
+      setLocalShuffleState(!shuffleOn);
+      await fetch("/api/spotify/shuffle", {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ state: !shuffleOn }),
+      });
+      if (refresh) {
+        refresh();
+        setTimeout(() => refresh(), 300);
+      }
+    } catch (e) {
+      console.error(e);
+    }
+  };
+
+  const onCycleRepeat = async () => {
+    if (!controlsEnabled || !advancedPlaybackEnabled) return;
+    try {
+      const current: "off" | "context" | "track" = repeatState ?? "off";
+      const next: "off" | "context" | "track" =
+        current === "off" ? "context" : current === "context" ? "track" : "off";
+      // Optimistically update UI
+      setLocalRepeatState(next);
+      await fetch("/api/spotify/repeat", {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ state: next }),
+      });
+      if (refresh) {
+        refresh();
+        setTimeout(() => refresh(), 300);
+      }
+    } catch (e) {
+      console.error(e);
     }
   };
 
@@ -166,8 +222,9 @@ export function NowPlayingCard({
   const artistLinkClasses = getArtistLinkClasses(isLightBg);
   const albumClasses = getAlbumClasses(isLightBg);
   const isPlaying = localIsPlaying != null ? localIsPlaying : !!data?.isPlaying;
-  const shuffleOn = !!data?.shuffleState;
-  const repeatState = data?.repeatState;
+  const shuffleOn =
+    localShuffleState != null ? localShuffleState : !!data?.shuffleState;
+  const repeatState = localRepeatState ?? data?.repeatState;
   const repeatOneOn = repeatState === "track";
   const repeatOn = repeatState === "context" || repeatOneOn;
 
@@ -279,8 +336,7 @@ export function NowPlayingCard({
               className={`absolute top-1/2 -left-8 -translate-y-1/2 cursor-pointer ${
                 isLightBg ? "text-black" : "drop-shadow-sm-dark text-white"
               }`}
-              // No-op for now
-              onClick={() => {}}
+              onClick={onToggleShuffle}
             >
               <span className="relative inline-flex translate-y-0.5 items-center">
                 <TbArrowsShuffle size={16} />
@@ -307,8 +363,7 @@ export function NowPlayingCard({
               className={`absolute top-1/2 -right-8 -translate-y-1/2 cursor-pointer ${
                 isLightBg ? "text-black" : "drop-shadow-sm-dark text-white"
               }`}
-              // No-op for now
-              onClick={() => {}}
+              onClick={onCycleRepeat}
             >
               <span className="relative inline-flex translate-y-0.5 items-center">
                 {repeatOneOn ? (
