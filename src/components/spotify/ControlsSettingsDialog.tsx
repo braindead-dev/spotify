@@ -8,6 +8,7 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog";
 import Link from "next/link";
+import { Button } from "../ui/button";
 
 type Props = {
   controlsEnabled: boolean;
@@ -51,7 +52,7 @@ export function ControlsSettingsDialog({
             />
             Enable playback controls (premium)
           </label>
-          {controlsEnabled && progressBarEnabled ? (
+          {progressBarEnabled ? (
             <label className="flex items-center gap-2 text-sm">
               <input
                 type="checkbox"
@@ -89,11 +90,10 @@ export function ControlsSettingsDialog({
           </label>
         </div>
         <div className="mt-1 flex justify-center gap-1 text-xs">
-          <Link
-            href="/api/spotify/logout"
-            className="text-blue-900 hover:underline"
-          >
-            Log out of Spotify
+          <Link href="/api/spotify/logout">
+            <Button variant="fancy" className="mb-2 px-2 py-0.5 text-xs">
+              Log out of Spotify
+            </Button>
           </Link>
         </div>
         <div className="flex justify-center gap-1 text-xs">
