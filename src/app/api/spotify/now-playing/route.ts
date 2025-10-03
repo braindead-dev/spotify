@@ -80,6 +80,10 @@ export async function GET() {
       }
     } catch (err) {
       console.error("Failed to refresh Spotify token", err);
+      // Clear invalid tokens so user can re-authenticate
+      cookieStore.delete("spotify_access_token");
+      cookieStore.delete("spotify_refresh_token");
+      cookieStore.delete("spotify_token_expires_at");
       return NextResponse.json(
         { authenticated: false, message: "Failed to refresh token" },
         { status: 401 },

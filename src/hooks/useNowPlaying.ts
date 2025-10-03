@@ -6,6 +6,8 @@ import type { NowPlaying } from "@/types/spotify";
 export function useNowPlaying(pollMs: number = 2000) {
   const [data, setData] = useState<NowPlaying | null>(null);
   const [loading, setLoading] = useState(false);
+  // Track if we've ever been authenticated to prevent flickering back to sign-in
+  const [wasAuthenticated, setWasAuthenticated] = useState(false);
 
   const fetchNowPlaying = useCallback(async () => {
     setLoading(true);
@@ -14,13 +16,28 @@ export function useNowPlaying(pollMs: number = 2000) {
         cache: "no-store",
       });
       const json = (await res.json()) as NowPlaying;
-      setData(json);
+
+      // Only update data if we got a valid response
+      // If authenticated is false and we were previously authenticated,
+      // only disconnect if it's a 401 (token refresh failed)
+      if (json.authenticated) {
+        setData(json);
+        setWasAuthenticated(true);
+      } else if (!wasAuthenticated || res.status === 401) {
+        // Only set unauthenticated state if:
+        // 1. We were never authenticated, OR
+        // 2. We got a 401 (token refresh failed)
+        setData(json);
+        setWasAuthenticated(false);
+      }
+      // Otherwise, keep the previous data to avoid flickering
     } catch (e) {
       console.error(e);
+      // On network errors, keep the previous state
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [wasAuthenticated]);
 
   useEffect(() => {
     fetchNowPlaying();
