@@ -106,6 +106,27 @@ export async function GET() {
   }
 
   if (!res.ok) {
+    // Log the error for debugging
+    const errorText = await res.text().catch(() => "Unable to read error");
+    console.error(
+      `Spotify API error: ${res.status} ${res.statusText}`,
+      errorText,
+    );
+
+    // 403 typically means the user doesn't have Spotify Premium
+    if (res.status === 403) {
+      return NextResponse.json(
+        {
+          authenticated: true,
+          isPlaying: false,
+          error: "PREMIUM_REQUIRED",
+          message:
+            "Spotify Premium is required to use the Web Playback API. Free accounts cannot access currently playing information.",
+        },
+        { status: 403 },
+      );
+    }
+
     return NextResponse.json(
       { authenticated: true, isPlaying: false },
       { status: res.status },

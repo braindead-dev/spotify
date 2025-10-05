@@ -162,6 +162,23 @@ export function NowPlayingCard({
     return <p>...</p>;
   }
 
+  // Show premium required error if present
+  if (data?.error === "PREMIUM_REQUIRED") {
+    return (
+      <div className="max-w-md space-y-4 text-center">
+        <p className="text-xl font-semibold">🎵 Spotify Premium Required</p>
+        <p className="text-sm opacity-80">
+          {data.message ||
+            "This visualizer requires Spotify Premium to access playback information."}
+        </p>
+        <p className="text-xs opacity-60">
+          Free Spotify accounts don&apos;t have access to the Web Playback API.
+          Upgrade to Premium to use this feature.
+        </p>
+      </div>
+    );
+  }
+
   if (!data || !displayedTrack) {
     return <p>Not playing anything right now.</p>;
   }

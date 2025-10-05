@@ -21,7 +21,25 @@ export function useNowPlaying(pollMs: number = 2000) {
       // If authenticated is false and we were previously authenticated,
       // only disconnect if it's a 401 (token refresh failed)
       if (json.authenticated) {
-        setData(json);
+        // If authenticated and something is playing, update the data
+        // If nothing is playing but we have previous data, keep the previous track
+        setData((prevData) => {
+          // If there's a track playing, always update
+          if (json.isPlaying && json.track) {
+            return json;
+          }
+          // If nothing is playing but we have previous track data, keep it
+          // but update the isPlaying status
+          if (prevData?.track) {
+            return {
+              ...json,
+              track: prevData.track,
+              // Keep other metadata from the new response (authenticated, etc.)
+            };
+          }
+          // No previous data, just set the new data
+          return json;
+        });
         setWasAuthenticated(true);
       } else if (!wasAuthenticated || res.status === 401) {
         // Only set unauthenticated state if:

@@ -17,4 +17,6 @@ export type NowPlaying = {
   durationMs?: number;
   shuffleState?: boolean; // true if shuffle is on
   repeatState?: "off" | "context" | "track"; // Spotify repeat modes
+  error?: string; // Error code (e.g., "PREMIUM_REQUIRED")
+  message?: string; // Human-readable error message
 };
